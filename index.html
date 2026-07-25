@@ -442,9 +442,49 @@
       document.getElementById('badge-edge').className = isEdgePos ? "px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800" : "px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800";
     }
 
-    function saveToSheet() {
-      alert("Trade parameters logged! (Connect your Apps Script Endpoint to write directly to your 'Option Assessment' Google Sheet tab).");
-    }
+    // Replace with your Web App Deployment URL for this script
+const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"; 
+
+function saveToSheet() {
+  const saveBtn = document.querySelector('button[onclick="saveToSheet()"]');
+  saveBtn.innerText = "Saving...";
+  saveBtn.disabled = true;
+
+  const tradePayload = {
+    ticker: document.getElementById('ev-ticker').value,
+    premiumPaid: parseFloat(document.getElementById('ev-premium').value) || 0,
+    strikePrice: parseFloat(document.getElementById('ev-strike').value) || 0,
+    currentPrice: parseFloat(document.getElementById('ev-current').value) || 0,
+    maxLoss: parseFloat(document.getElementById('ev-premium').value) || 0,
+    targetPrice: parseFloat(document.getElementById('ev-target').value) || 0,
+    yourSuccessProb: parseFloat(document.getElementById('prob-user-slider').value) || 0,
+    probFailure: 100 - (parseFloat(document.getElementById('prob-user-slider').value) || 0),
+    maxPayoutAtTarget: Math.max(0, parseFloat(document.getElementById('ev-target').value) - parseFloat(document.getElementById('ev-strike').value)) - parseFloat(document.getElementById('ev-premium').value),
+    marketImpliedProb: parseFloat(document.getElementById('prob-market-input').value) || 0,
+    expectedValue: parseFloat(document.getElementById('metric-ev-amount').innerText.replace('$', '')) || 0,
+    yourEdge: parseFloat(document.getElementById('metric-edge').innerText.replace('%', '').replace('+', '')) || 0,
+    verdict: document.getElementById('verdict-title').innerText,
+    adverseSelectionNote: document.getElementById('ev-notes').value,
+    returnOnPremium: parseFloat(document.getElementById('metric-ev-return').innerText.replace('% Return', '')) || 0
+  };
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(tradePayload)
+  })
+  .then(() => {
+    alert("Trade saved successfully to both 'Option Assessment' and 'Option PIT'!");
+    saveBtn.innerText = "Save to Sheet";
+    saveBtn.disabled = false;
+  })
+  .catch(err => {
+    alert("Error saving trade: " + err);
+    saveBtn.innerText = "Save to Sheet";
+    saveBtn.disabled = false;
+  });
+}
 
     // Init
     renderMockChain();
