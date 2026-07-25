@@ -329,37 +329,88 @@
       if (e.key === 'Enter') fetchOptionChain();
     }
 
-    function generate20Expirations() {
+    // Returns the 3rd Friday of a given year & month
+    function getThirdFriday(year, month) {
+      let date = new Date(year, month, 1);
+      let day = date.getDay();
+      let diff = (5 - day + 7) % 7; // distance to first Friday
+      let firstFriday = 1 + diff;
+      return new Date(year, month, firstFriday + 14); // 3rd Friday
+    }
+
+    // Generates authentic option market expirations (Near-term Weeklies + 3rd Friday Monthlies & LEAPs)
+    function populateAuthenticExpirations(apiDates = null) {
       const expSelect = document.getElementById('expiration-select');
       expSelect.innerHTML = '<option value="">Select Expiration</option>';
 
-      let date = new Date();
-      const dayOfWeek = date.getDay();
-      const distanceToFriday = (5 - dayOfWeek + 7) % 7 || 7;
-      date.setDate(date.getDate() + distanceToFriday);
-
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const today = new Date();
 
-      for (let i = 0; i < 20; i++) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const dateString = `${year}-${month}-${day}`;
+      if (apiDates && Array.isArray(apiDates) && apiDates.length > 0) {
+        apiDates.forEach(dateStr => {
+          const expDate = new Date(dateStr + "T00:00:00");
+          const dte = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+          if (dte >= 0) {
+            const formatted = `${monthNames[expDate.getMonth()]} ${String(expDate.getDate()).padStart(2, '0')}, ${expDate.getFullYear()} (${dte} DTE)`;
+            const option = document.createElement('option');
+            option.value = dateStr;
+            option.innerText = formatted;
+            option.dataset.dte = dte;
+            expSelect.appendChild(option);
+          }
+        });
+        return;
+      }
 
-        const today = new Date();
-        const dte = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
-        const formattedText = `${monthNames[date.getMonth()]} ${day}, ${year} (${dte} DTE)`;
-        
+      // Fallback: Build precise market expiration structure
+      const dates = [];
+
+      // 1. Next 6 Weekly Fridays
+      let wDate = new Date(today);
+      let dayOfWeek = wDate.getDay();
+      let distanceToFriday = (5 - dayOfWeek + 7) % 7 || 7;
+      wDate.setDate(wDate.getDate() + distanceToFriday);
+
+      for (let i = 0; i < 6; i++) {
+        dates.push(new Date(wDate));
+        wDate.setDate(wDate.getDate() + 7);
+      }
+
+      // 2. Standard 3rd Friday Monthlies & LEAPs for next 24 months
+      let startYear = today.getFullYear();
+      let startMonth = today.getMonth();
+
+      for (let m = 0; m < 24; m++) {
+        let curMonth = (startMonth + m) % 12;
+        let curYear = startYear + Math.floor((startMonth + m) / 12);
+        let thirdFri = getThirdFriday(curYear, curMonth);
+
+        if (thirdFri > today) {
+          // Prevent duplicates
+          if (!dates.some(d => d.toISOString().slice(0, 10) === thirdFri.toISOString().slice(0, 10))) {
+            dates.push(thirdFri);
+          }
+        }
+      }
+
+      // Sort chronologically
+      dates.sort((a, b) => a - b);
+
+      dates.forEach(d => {
+        const year = d.getFullYear();
+        const monthStr = String(d.getMonth() + 1).padStart(2, '0');
+        const dayStr = String(d.getDate()).padStart(2, '0');
+        const dateString = `${year}-${monthStr}-${dayStr}`;
+
+        const dte = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+        const formattedText = `${monthNames[d.getMonth()]} ${dayStr}, ${year} (${dte} DTE)`;
+
         const option = document.createElement('option');
         option.value = dateString;
         option.innerText = formattedText;
         option.dataset.dte = dte;
         expSelect.appendChild(option);
-
-        if (i < 6) date.setDate(date.getDate() + 7);
-        else if (i < 12) date.setDate(date.getDate() + 14);
-        else date.setDate(date.getDate() + 28);
-      }
+      });
     }
 
     function onExpirationChange() {
@@ -380,26 +431,50 @@
         return;
       }
 
-      document.getElementById('display-status').innerText = "Fetching Live Price...";
+      document.getElementById('display-status').innerText = "Fetching Live Data...";
       document.getElementById('chain-ticker-label').innerText = ticker;
-      generate20Expirations();
 
-      // Build target API URLs (Direct + CORS Proxy Backup)
+      // 1. Fetch Real Live Expiration Dates from FMP
+      const expUrl = `https://financialmodelingprep.com/api/v3/options-expiration/${ticker}?apikey=${FMP_API_KEY}`;
+      const expProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(expUrl)}`;
+
+      try {
+        let expData = null;
+        try {
+          const eRes = await fetch(expUrl);
+          if (eRes.ok) expData = await eRes.json();
+        } catch (e) {
+          console.warn("Direct expiration fetch blocked, trying proxy...");
+        }
+
+        if (!expData || !Array.isArray(expData)) {
+          const pRes = await fetch(expProxyUrl);
+          if (pRes.ok) expData = await pRes.json();
+        }
+
+        if (expData && Array.isArray(expData) && expData.length > 0) {
+          populateAuthenticExpirations(expData);
+        } else {
+          populateAuthenticExpirations(); // Standard 3rd Friday cycle fallback
+        }
+      } catch (e) {
+        populateAuthenticExpirations();
+      }
+
+      // 2. Fetch Live Stock Quote
       const targetUrl = `https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${FMP_API_KEY}`;
       const corsProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 
       try {
         let data = null;
 
-        // Try direct fetch first
         try {
           const res = await fetch(targetUrl);
           if (res.ok) data = await res.json();
         } catch (e) {
-          console.warn("Direct fetch blocked by CORS, trying proxy...");
+          console.warn("Direct quote fetch blocked by CORS, trying proxy...");
         }
 
-        // Fallback to CORS Proxy fetch if direct fetch fails
         if (!data || !Array.isArray(data) || data.length === 0) {
           const proxyRes = await fetch(corsProxyUrl);
           if (proxyRes.ok) data = await proxyRes.json();
