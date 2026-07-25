@@ -75,8 +75,8 @@
 
           <div>
             <label class="block text-xs text-gray-400 mb-1 font-semibold">EXPIRATION</label>
-            <select id="expiration-select" class="bg-gray-900 border border-dark text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-emerald-500">
-              <option value="">-- Enter Symbol First --</option>
+            <select id="expiration-select" onchange="onExpirationChange()" class="bg-gray-900 border border-dark text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-emerald-500">
+              <option value="">Select Expiration</option>
             </select>
           </div>
         </div>
@@ -102,7 +102,7 @@
       <div class="bg-card rounded-xl border border-dark overflow-hidden">
         <div class="p-4 border-b border-dark flex justify-between items-center">
           <h2 class="font-bold text-gray-200"><span id="chain-ticker-label">--</span> — <span id="chain-type-label">Call Options</span></h2>
-          <span class="text-xs text-gray-400" id="chain-exp-label">Expiration: --</span>
+          <span class="text-xs text-gray-400" id="chain-exp-label">Expiration: Select Expiration</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
@@ -327,30 +327,75 @@
       if (e.key === 'Enter') fetchOptionChain();
     }
 
+    // Generate 20 Friday Expiration Dates
+    function generate20Expirations() {
+      const expSelect = document.getElementById('expiration-select');
+      expSelect.innerHTML = '<option value="">Select Expiration</option>';
+
+      let date = new Date();
+      // Move to next Friday
+      const dayOfWeek = date.getDay();
+      const distanceToFriday = (5 - dayOfWeek + 7) % 7 || 7;
+      date.setDate(date.getDate() + distanceToFriday);
+
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      for (let i = 0; i < 20; i++) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+
+        // Calculate DTE
+        const today = new Date();
+        const dte = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+
+        const formattedText = `${monthNames[date.getMonth()]} ${day}, ${year} (${dte} DTE)`;
+        
+        const option = document.createElement('option');
+        option.value = dateString;
+        option.innerText = formattedText;
+        option.dataset.dte = dte;
+        expSelect.appendChild(option);
+
+        // Advance 1 week for first 6, then 2-4 weeks for farther dates
+        if (i < 6) {
+          date.setDate(date.getDate() + 7);
+        } else if (i < 12) {
+          date.setDate(date.getDate() + 14);
+        } else {
+          date.setDate(date.getDate() + 28);
+        }
+      }
+    }
+
+    function onExpirationChange() {
+      const select = document.getElementById('expiration-select');
+      const selectedOption = select.options[select.selectedIndex];
+      if (select.value) {
+        document.getElementById('chain-exp-label').innerText = `Expiration: ${selectedOption.innerText}`;
+        document.getElementById('ev-dte').value = selectedOption.dataset.dte || 34;
+      } else {
+        document.getElementById('chain-exp-label').innerText = "Expiration: Select Expiration";
+      }
+    }
+
     function fetchOptionChain() {
       const ticker = document.getElementById('symbol-input').value.trim().toUpperCase();
       if (!ticker) {
         alert("Please enter a ticker symbol!");
         return;
       }
+
+      generate20Expirations();
       renderChainForTicker(ticker);
     }
 
-    // Populate Expirations and Chain Dynamically
     function renderChainForTicker(ticker) {
       document.getElementById('chain-ticker-label').innerText = ticker;
       document.getElementById('display-status').innerText = "Active";
 
-      // Populate Expiration Dropdown
-      const expSelect = document.getElementById('expiration-select');
-      expSelect.innerHTML = `
-        <option value="2026-08-28">Aug 28, 2026 (34 DTE)</option>
-        <option value="2026-09-18">Sep 18, 2026 (55 DTE)</option>
-        <option value="2026-10-16">Oct 16, 2026 (83 DTE)</option>
-      `;
-      document.getElementById('chain-exp-label').innerText = "Expiration: Aug 28, 2026";
-
-      // Price and Company estimates
+      // Price and Company Lookup
       let lastPrice = 200.00;
       let compName = `${ticker} Common Stock`;
       
@@ -358,15 +403,17 @@
       else if (ticker === 'AMZN') { lastPrice = 185.00; compName = "Amazon.com, Inc."; }
       else if (ticker === 'AAPL') { lastPrice = 220.00; compName = "Apple Inc."; }
       else if (ticker === 'QQQ') { lastPrice = 480.00; compName = "Invesco QQQ Trust"; }
+      else if (ticker === 'NVDA') { lastPrice = 125.00; compName = "NVIDIA Corporation"; }
+      else if (ticker === 'SPY') { lastPrice = 550.00; compName = "SPDR S&P 500 ETF Trust"; }
 
       currentStockPrice = lastPrice;
+      
+      // Update UI Header Cards Immediately
       document.getElementById('display-last-price').innerText = `$${lastPrice.toFixed(2)}`;
       document.getElementById('display-company-name').innerText = compName;
-      
-      // Target price default estimate (+8% of current price)
       document.getElementById('ev-target').value = (lastPrice * 1.08).toFixed(2);
 
-      // Render Strikes Table
+      // Render Option Strikes
       const tbody = document.getElementById('chain-tbody');
       tbody.innerHTML = '';
 
@@ -414,7 +461,8 @@
       document.getElementById('ev-current').value = currentStockPrice.toFixed(2);
       document.getElementById('prob-market-input').value = (delta * 100).toFixed(1);
       
-      document.getElementById('ev-banner-text').innerText = `Pre-filled from ${ticker} $${strike} strike • 34 DTE — add your success probability and target price to complete the analysis.`;
+      const dte = document.getElementById('ev-dte').value || 34;
+      document.getElementById('ev-banner-text').innerText = `Pre-filled from ${ticker} $${strike} strike • ${dte} DTE — add your success probability and target price to complete the analysis.`;
       
       calculateEV();
       switchTab('ev');
