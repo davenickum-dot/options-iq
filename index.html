@@ -57,7 +57,7 @@
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
           <div class="relative flex-1">
             <span class="absolute left-3 top-2.5 text-xs font-semibold text-gray-500">SYMBOL</span>
-            <input type="text" id="symbol-input" value="MSFT" class="w-full bg-gray-900 border border-dark rounded-lg pt-6 pb-2 px-3 text-white font-bold text-lg focus:outline-none focus:border-emerald-500 uppercase">
+            <input type="text" id="symbol-input" placeholder="ENTER TICKER (e.g. AMZN)" class="w-full bg-gray-900 border border-dark rounded-lg pt-6 pb-2 px-3 text-white font-bold text-lg focus:outline-none focus:border-emerald-500 uppercase">
           </div>
           <button onclick="fetchOptionChain()" class="bg-accent text-gray-950 font-bold px-6 py-4 rounded-lg hover:bg-emerald-400 transition flex items-center gap-2">
             <i class="fa-solid fa-magnifying-glass"></i> Analyze
@@ -87,23 +87,23 @@
       <div class="bg-card p-4 rounded-xl border border-dark flex flex-wrap items-center justify-between gap-4">
         <div>
           <span class="text-xs text-gray-400 font-semibold block">Last Price</span>
-          <span class="text-2xl font-extrabold text-white" id="display-last-price">$381.70</span>
+          <span class="text-2xl font-extrabold text-white" id="display-last-price">$185.00</span>
           <span class="text-xs text-emerald-400 ml-2 font-medium"><i class="fa-solid fa-arrow-trend-up"></i> +0.00 (+0.00%)</span>
         </div>
         <div>
           <span class="text-xs text-gray-400 font-semibold block">Company</span>
-          <span class="text-base font-medium text-gray-200">Microsoft Corporation Common Stock</span>
+          <span class="text-base font-medium text-gray-200" id="display-company-name">Amazon.com, Inc.</span>
         </div>
         <div>
           <span class="text-xs text-gray-400 font-semibold block">3-Month Move</span>
-          <span class="text-sm font-medium text-gray-300">-20% &rarr; +12%</span>
+          <span class="text-sm font-medium text-gray-300">-12% &rarr; +18%</span>
         </div>
       </div>
 
       <!-- OPTION CHAIN TABLE -->
       <div class="bg-card rounded-xl border border-dark overflow-hidden">
         <div class="p-4 border-b border-dark flex justify-between items-center">
-          <h2 class="font-bold text-gray-200"><span id="chain-ticker-label">MSFT</span> — <span id="chain-type-label">Call Options</span></h2>
+          <h2 class="font-bold text-gray-200"><span id="chain-ticker-label">AMZN</span> — <span id="chain-type-label">Call Options</span></h2>
           <span class="text-xs text-gray-400" id="chain-exp-label">Expiration: Aug 28, 2026</span>
         </div>
         <div class="overflow-x-auto">
@@ -136,7 +136,7 @@
       <!-- PRE-FILLED BANNER -->
       <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2">
         <i class="fa-solid fa-circle-info"></i>
-        <span id="ev-banner-text">Pre-filled from MSFT $380 strike • 34 DTE — add your success probability and target price to complete the analysis.</span>
+        <span id="ev-banner-text">Pre-filled option trade data — add your success probability and target price to complete the analysis.</span>
       </div>
 
       <!-- MAIN CALCULATOR GRID -->
@@ -171,13 +171,13 @@
 
             <div>
               <label class="block text-xs text-gray-400 mb-1">YOUR TARGET PRICE ($)</label>
-              <input id="ev-target" type="number" step="0.5" value="400.00" class="w-full bg-gray-900 border border-emerald-500 rounded p-2 text-emerald-400 font-extrabold text-lg" oninput="calculateEV()">
+              <input id="ev-target" type="number" step="0.5" value="200.00" class="w-full bg-gray-900 border border-emerald-500 rounded p-2 text-emerald-400 font-extrabold text-lg" oninput="calculateEV()">
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs text-gray-400 mb-1">IMPLIED VOL (IV %)</label>
-                <input id="ev-iv" type="number" value="41.6" class="w-full bg-gray-900 border border-dark rounded p-2 text-white" oninput="calculateEV()">
+                <input id="ev-iv" type="number" value="35.2" class="w-full bg-gray-900 border border-dark rounded p-2 text-white" oninput="calculateEV()">
               </div>
               <div>
                 <label class="block text-xs text-gray-400 mb-1">DAYS TO EXPIRY</label>
@@ -203,9 +203,9 @@
             <div>
               <div class="flex justify-between text-xs mb-1">
                 <span class="text-gray-400">MARKET IMPLIED PROBABILITY (DELTA)</span>
-                <span id="prob-market-display" class="font-bold text-yellow-400">55.2%</span>
+                <span id="prob-market-display" class="font-bold text-yellow-400">50.0%</span>
               </div>
-              <input id="prob-market-input" type="number" step="0.1" value="55.2" class="w-full bg-gray-900 border border-dark rounded p-2 text-white text-sm" oninput="calculateEV()">
+              <input id="prob-market-input" type="number" step="0.1" value="50.0" class="w-full bg-gray-900 border border-dark rounded p-2 text-white text-sm" oninput="calculateEV()">
             </div>
           </div>
 
@@ -239,8 +239,8 @@
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-card p-4 rounded-xl border border-dark">
               <span class="text-xs text-gray-400 block">Max Loss</span>
-              <span class="text-xl font-bold text-white" id="metric-max-loss">$20.93 / share</span>
-              <span class="text-xs text-gray-500 block" id="metric-max-loss-contract">$2,093.00 per contract</span>
+              <span class="text-xl font-bold text-white" id="metric-max-loss">$0.00 / share</span>
+              <span class="text-xs text-gray-500 block" id="metric-max-loss-contract">$0.00 per contract</span>
             </div>
             <div class="bg-card p-4 rounded-xl border border-dark">
               <span class="text-xs text-gray-400 block">Prob of Failure</span>
@@ -249,12 +249,12 @@
             </div>
             <div class="bg-card p-4 rounded-xl border border-dark">
               <span class="text-xs text-gray-400 block">Max Payout at Target</span>
-              <span class="text-xl font-bold text-white" id="metric-max-payout">-$0.93</span>
+              <span class="text-xl font-bold text-white" id="metric-max-payout">$0.00</span>
               <span class="text-xs text-gray-500 block">Net of premium paid</span>
             </div>
             <div class="bg-card p-4 rounded-xl border border-dark">
               <span class="text-xs text-gray-400 block">Your Edge</span>
-              <span class="text-xl font-bold text-emerald-400" id="metric-edge">+14.8%</span>
+              <span class="text-xl font-bold text-emerald-400" id="metric-edge">+20.0%</span>
               <span class="text-xs text-gray-500 block">vs. market implied prob</span>
             </div>
           </div>
@@ -263,20 +263,20 @@
           <div class="bg-card p-5 rounded-xl border border-dark space-y-3">
             <div class="flex justify-between items-baseline">
               <span class="text-xs font-bold text-gray-400">EXPECTED VALUE (EV)</span>
-              <span class="text-xs font-bold text-red-400" id="metric-ev-return">-33.1% Return</span>
+              <span class="text-xs font-bold text-red-400" id="metric-ev-return">0.0% Return</span>
             </div>
-            <div class="text-3xl font-black text-red-500" id="metric-ev-amount">-$6.93</div>
+            <div class="text-3xl font-black text-red-500" id="metric-ev-amount">$0.00</div>
             <p class="text-xs text-gray-400">Mathematical average return if this trade was repeated 1,000 times with your probability estimate.</p>
           </div>
 
           <!-- FORMULA BREAKDOWN -->
           <div class="bg-card p-4 rounded-xl border border-dark font-mono text-xs space-y-1.5 text-gray-400">
             <h4 class="font-sans font-bold text-gray-300 text-xs mb-2">FORMULA BREAKDOWN</h4>
-            <p>Max Loss (L) = Premium = <span id="formula-loss" class="text-white">$20.93</span></p>
-            <p>Max Payout (G) = MAX(0, Target - Strike) - Premium = <span id="formula-payout" class="text-white">-$0.93</span></p>
+            <p>Max Loss (L) = Premium = <span id="formula-loss" class="text-white">$0.00</span></p>
+            <p>Max Payout (G) = MAX(0, Target - Strike) - Premium = <span id="formula-payout" class="text-white">$0.00</span></p>
             <p>Prob Failure = 1 - Your Prob = <span id="formula-failure" class="text-white">30.0%</span></p>
-            <p>EV = (Prob * Payout) - (Failure * Loss) = <span id="formula-ev" class="text-red-400">-$6.93</span></p>
-            <p>Your Edge = Your Prob - Market Prob = <span id="formula-edge" class="text-emerald-400">+14.8%</span></p>
+            <p>EV = (Prob * Payout) - (Failure * Loss) = <span id="formula-ev" class="text-red-400">$0.00</span></p>
+            <p>Your Edge = Your Prob - Market Prob = <span id="formula-edge" class="text-emerald-400">+20.0%</span></p>
           </div>
 
           <!-- ACTION BUTTONS -->
@@ -311,6 +311,7 @@
     }
 
     let selectedOptionType = 'Call';
+    let currentStockPrice = 185.00;
 
     function setOptionType(type) {
       selectedOptionType = type;
@@ -320,18 +321,47 @@
       renderMockChain();
     }
 
-    // Mock Chain Data Generator
+    function fetchOptionChain() {
+      const ticker = document.getElementById('symbol-input').value.trim().toUpperCase();
+      if (!ticker) {
+        alert("Please enter a ticker symbol!");
+        return;
+      }
+      renderMockChain();
+    }
+
+    // Dynamic Chain Generator
     function renderMockChain() {
       const tbody = document.getElementById('chain-tbody');
       tbody.innerHTML = '';
       
-      const strikes = [365, 370, 375, 380, 385, 390, 395, 400, 405, 410];
-      const lastPrice = 381.70;
+      const ticker = document.getElementById('symbol-input').value.trim().toUpperCase() || 'AMZN';
+      document.getElementById('chain-ticker-label').innerText = ticker;
+      
+      // Dynamic price estimates per ticker
+      let lastPrice = 200.00;
+      let compName = `${ticker} Common Stock`;
+      
+      if (ticker === 'MSFT') { lastPrice = 381.70; compName = "Microsoft Corporation"; }
+      else if (ticker === 'AMZN') { lastPrice = 185.00; compName = "Amazon.com, Inc."; }
+      else if (ticker === 'AAPL') { lastPrice = 220.00; compName = "Apple Inc."; }
+      else if (ticker === 'QQQ') { lastPrice = 480.00; compName = "Invesco QQQ Trust"; }
+
+      currentStockPrice = lastPrice;
+      document.getElementById('display-last-price').innerText = `$${lastPrice.toFixed(2)}`;
+      document.getElementById('display-company-name').innerText = compName;
+
+      // Generate strikes dynamically around the current price
+      const baseStrike = Math.round(lastPrice / 5) * 5;
+      const strikes = [];
+      for (let i = -5; i <= 5; i++) {
+        strikes.push(baseStrike + (i * 5));
+      }
 
       strikes.forEach(strike => {
         const isITM = selectedOptionType === 'Call' ? strike < lastPrice : strike > lastPrice;
-        const delta = (0.95 - (strike - 350) * 0.01).toFixed(3);
-        const mid = (20.93 - (strike - 380) * 0.5).toFixed(2);
+        const delta = Math.max(0.05, Math.min(0.95, 0.50 + ((lastPrice - strike) / lastPrice) * 2)).toFixed(3);
+        const mid = Math.max(0.50, Math.abs(lastPrice - strike) + 3.50).toFixed(2);
         
         const row = document.createElement('tr');
         row.className = isITM ? "bg-emerald-950/20 hover:bg-emerald-900/30 transition" : "hover:bg-gray-800/50 transition";
@@ -344,10 +374,10 @@
           <td class="p-3">${(mid * 1.05).toFixed(2)}</td>
           <td class="p-3 font-bold text-white">${mid}</td>
           <td class="p-3">${(mid * 0.98).toFixed(2)}</td>
-          <td class="p-3">41.6%</td>
+          <td class="p-3">35.2%</td>
           <td class="p-3">${delta}</td>
-          <td class="p-3">100</td>
-          <td class="p-3">214</td>
+          <td class="p-3">120</td>
+          <td class="p-3">450</td>
           <td class="p-3 text-right">
             <button onclick="selectOption('${strike}', '${mid}', '${delta}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
               ⚡ EV
@@ -359,11 +389,11 @@
     }
 
     function selectOption(strike, premium, delta) {
-      const ticker = document.getElementById('symbol-input').value.toUpperCase();
+      const ticker = document.getElementById('symbol-input').value.toUpperCase() || 'AMZN';
       document.getElementById('ev-ticker').value = ticker;
       document.getElementById('ev-strike').value = strike;
       document.getElementById('ev-premium').value = premium;
-      document.getElementById('ev-current').value = 381.70;
+      document.getElementById('ev-current').value = currentStockPrice.toFixed(2);
       document.getElementById('prob-market-input').value = (delta * 100).toFixed(1);
       
       document.getElementById('ev-banner-text').innerText = `Pre-filled from ${ticker} $${strike} strike • 34 DTE — add your success probability and target price to complete the analysis.`;
@@ -391,7 +421,6 @@
       const failureProb = 1 - userProb;
       const ev = (userProb * maxPayout) - (failureProb * maxLoss);
       const edge = (userProb - marketProb) * 100;
-      const returnOnPremium = (maxPayout / premium) * 100;
 
       // Update UI Metrics
       document.getElementById('metric-max-loss').innerText = `$${maxLoss.toFixed(2)} / share`;
@@ -401,7 +430,7 @@
       document.getElementById('metric-max-payout').innerText = `$${maxPayout.toFixed(2)}`;
       document.getElementById('metric-edge').innerText = `${edge >= 0 ? '+' : ''}${edge.toFixed(1)}%`;
       document.getElementById('metric-ev-amount').innerText = `$${ev.toFixed(2)}`;
-      document.getElementById('metric-ev-return').innerText = `${((ev / premium) * 100).toFixed(1)}% Return`;
+      document.getElementById('metric-ev-return').innerText = `${premium > 0 ? ((ev / premium) * 100).toFixed(1) : 0}% Return`;
 
       // Formula breakdown values
       document.getElementById('formula-loss').innerText = `$${maxLoss.toFixed(2)}`;
@@ -442,49 +471,49 @@
       document.getElementById('badge-edge').className = isEdgePos ? "px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800" : "px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800";
     }
 
-// Paste your Web App URL inside the quotes below
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8lPAR0V6ZSkP-oqaUo1iMmtfKV05vGGwFVKbgRTrrVE9QTP5t5xNYZeEQ-ZzFob4D/exec"; 
+    // Web App URL for dual logging
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8lPAR0V6ZSkP-oqaUo1iMmtfKV05vGGwFVKbgRTrrVE9QTP5t5xNYZeEQ-ZzFob4D/exec"; 
 
-function saveToSheet() {
-  const saveBtn = document.querySelector('button[onclick="saveToSheet()"]');
-  saveBtn.innerText = "Saving...";
-  saveBtn.disabled = true;
+    function saveToSheet() {
+      const saveBtn = document.querySelector('button[onclick="saveToSheet()"]');
+      saveBtn.innerText = "Saving...";
+      saveBtn.disabled = true;
 
-  const tradePayload = {
-    ticker: document.getElementById('ev-ticker').value,
-    premiumPaid: parseFloat(document.getElementById('ev-premium').value) || 0,
-    strikePrice: parseFloat(document.getElementById('ev-strike').value) || 0,
-    currentPrice: parseFloat(document.getElementById('ev-current').value) || 0,
-    maxLoss: parseFloat(document.getElementById('ev-premium').value) || 0,
-    targetPrice: parseFloat(document.getElementById('ev-target').value) || 0,
-    yourSuccessProb: parseFloat(document.getElementById('prob-user-slider').value) || 0,
-    probFailure: 100 - (parseFloat(document.getElementById('prob-user-slider').value) || 0),
-    maxPayoutAtTarget: Math.max(0, parseFloat(document.getElementById('ev-target').value) - parseFloat(document.getElementById('ev-strike').value)) - parseFloat(document.getElementById('ev-premium').value),
-    marketImpliedProb: parseFloat(document.getElementById('prob-market-input').value) || 0,
-    expectedValue: parseFloat(document.getElementById('metric-ev-amount').innerText.replace('$', '')) || 0,
-    yourEdge: parseFloat(document.getElementById('metric-edge').innerText.replace('%', '').replace('+', '')) || 0,
-    verdict: document.getElementById('verdict-title').innerText,
-    adverseSelectionNote: document.getElementById('ev-notes').value,
-    returnOnPremium: parseFloat(document.getElementById('metric-ev-return').innerText.replace('% Return', '')) || 0
-  };
+      const tradePayload = {
+        ticker: document.getElementById('ev-ticker').value,
+        premiumPaid: parseFloat(document.getElementById('ev-premium').value) || 0,
+        strikePrice: parseFloat(document.getElementById('ev-strike').value) || 0,
+        currentPrice: parseFloat(document.getElementById('ev-current').value) || 0,
+        maxLoss: parseFloat(document.getElementById('ev-premium').value) || 0,
+        targetPrice: parseFloat(document.getElementById('ev-target').value) || 0,
+        yourSuccessProb: parseFloat(document.getElementById('prob-user-slider').value) || 0,
+        probFailure: 100 - (parseFloat(document.getElementById('prob-user-slider').value) || 0),
+        maxPayoutAtTarget: Math.max(0, parseFloat(document.getElementById('ev-target').value) - parseFloat(document.getElementById('ev-strike').value)) - parseFloat(document.getElementById('ev-premium').value),
+        marketImpliedProb: parseFloat(document.getElementById('prob-market-input').value) || 0,
+        expectedValue: parseFloat(document.getElementById('metric-ev-amount').innerText.replace('$', '')) || 0,
+        yourEdge: parseFloat(document.getElementById('metric-edge').innerText.replace('%', '').replace('+', '')) || 0,
+        verdict: document.getElementById('verdict-title').innerText,
+        adverseSelectionNote: document.getElementById('ev-notes').value,
+        returnOnPremium: parseFloat(document.getElementById('metric-ev-return').innerText.replace('% Return', '')) || 0
+      };
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(tradePayload)
-  })
-  .then(() => {
-    alert("Trade saved successfully to both 'Option Assessment' and 'Option PIT'!");
-    saveBtn.innerText = "Save to Sheet";
-    saveBtn.disabled = false;
-  })
-  .catch(err => {
-    alert("Error saving trade: " + err);
-    saveBtn.innerText = "Save to Sheet";
-    saveBtn.disabled = false;
-  });
-}
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tradePayload)
+      })
+      .then(() => {
+        alert("Trade saved successfully to both 'Option Assessment' and 'Option PIT'!");
+        saveBtn.innerText = "Save to Sheet";
+        saveBtn.disabled = false;
+      })
+      .catch(err => {
+        alert("Error saving trade: " + err);
+        saveBtn.innerText = "Save to Sheet";
+        saveBtn.disabled = false;
+      });
+    }
 
     // Init
     renderMockChain();
