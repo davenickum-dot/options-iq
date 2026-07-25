@@ -293,8 +293,8 @@
   </main>
 
   <script>
-    // Paste your Financial Modeling Prep API Key below
-    const FMP_API_KEY = "YOUR_FMP_API_KEY_HERE";
+    // Financial Modeling Prep API Key String
+    const FMP_API_KEY = "hBUVPQKalIox1Y7mTda7QKXO8rO3Aj8s";
 
     // Global State
     let selectedOptionType = 'Call';
@@ -385,8 +385,8 @@
       generate20Expirations();
 
       try {
-        // Fetch Real-Time Live Stock Quote
-        const res = await fetch(`https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${FMP_API_KEY}`);
+        // Fetch Real-Time Live Stock Quote via FMP v3 API
+        const res = await fetch(`https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${FMP_API_KEY}`);
         const data = await res.json();
 
         if (data && data.length > 0 && data[0].price) {
@@ -407,17 +407,16 @@
         }
       } catch (err) {
         console.error("API Fetch Error:", err);
-        alert("Error connecting to Live API. Please ensure your FMP API key is pasted in the code.");
+        alert("Error connecting to Live API.");
         document.getElementById('display-status').innerText = "Connection Failed";
       }
     }
 
-    // Fully Dynamic Option Chain Engine based strictly on the live stock price
+    // Dynamic Option Chain Engine based strictly on the live stock price
     function renderDynamicChain(livePrice) {
       const tbody = document.getElementById('chain-tbody');
       tbody.innerHTML = '';
 
-      // Determine step interval ($1, $2.5, $5, $10) dynamically based on live stock price scale
       let strikeStep = 5;
       if (livePrice < 25) strikeStep = 1;
       else if (livePrice < 100) strikeStep = 2.5;
@@ -432,7 +431,6 @@
       strikes.forEach(strike => {
         const isITM = selectedOptionType === 'Call' ? strike < livePrice : strike > livePrice;
         
-        // Dynamically compute Deltas and Mid Prices relative to live stock price
         const priceDiff = livePrice - strike;
         const deltaVal = selectedOptionType === 'Call' 
           ? Math.max(0.05, Math.min(0.95, 0.50 + (priceDiff / livePrice) * 2.5))
