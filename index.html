@@ -293,8 +293,8 @@
   </main>
 
   <script>
-    // Config: Point this to your backend proxy server handling Schwab Developer API calls
-    const SCHWAB_API_BASE = "/api/schwab"; 
+    // Config: Pointed to your deployed Schwab Google Apps Script Web App
+    const SCHWAB_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8lPAR0V6ZSkP-oqaUo1iMmtfKV05vGGwFVKbgRTrrVE9QTP5t5xNYZeEQ-ZzFob4D/exec"; 
 
     // Global State
     let selectedOptionType = 'Call';
@@ -376,12 +376,14 @@
       document.getElementById('chain-ticker-label').innerText = ticker;
 
       try {
-        // Fetch underlying quote and expirations directly from your Schwab service
-        const res = await fetch(`${SCHWAB_API_BASE}/quote-and-expirations?symbol=${ticker}`);
+        // Fetch underlying quote and expirations from Google Apps Script Web App
+        const res = await fetch(`${SCHWAB_SCRIPT_URL}?action=getQuoteAndExpirations&ticker=${ticker}`);
         if (!res.ok) throw new Error("Failed to fetch Schwab quote data");
 
         const data = await res.json();
         
+        if (data.error) throw new Error(data.error);
+
         if (data && data.underlyingPrice) {
           currentStockPrice = parseFloat(data.underlyingPrice);
           document.getElementById('display-last-price').innerText = `$${currentStockPrice.toFixed(2)}`;
@@ -412,15 +414,17 @@
       tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400 font-sans"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Fetching live Schwab contract quotes...</td></tr>';
 
       try {
-        const chainRes = await fetch(`${SCHWAB_API_BASE}/chain?symbol=${ticker}&expiration=${dateStr}`);
+        const chainRes = await fetch(`${SCHWAB_SCRIPT_URL}?action=getChain&ticker=${ticker}&expiration=${dateStr}`);
         if (!chainRes.ok) throw new Error("Failed to fetch chain from Schwab API");
 
         const chainData = await chainRes.json();
 
-        if (chainData && Array.isArray(chainData) && chainData.length > 0) {
+        if (Array.isArray(chainData) && chainData.length > 0) {
           renderRealOptionsChain(chainData);
           document.getElementById('display-status').innerText = "Live Schwab Contracts Loaded";
           return;
+        } else if (chainData.error) {
+          console.error("Backend Error:", chainData.error);
         }
       } catch (e) {
         console.error("Schwab option chain fetch failed:", e);
