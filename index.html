@@ -1,678 +1,678 @@
-<!DOCTYPE html>
+I'm wanting to make some changes to my OptionsIQ index.html file. Here are a couple of screen shots with the old app on the left and the newer one on the right. Here is what I would like improved - Can we make a few upgrades. Here is the screen shots of the soon to be deleted perplexity on the left and Gemini on the right. Notice the missing information "Last Price" box. I like how the "Change" and "3-Month Move" range is given with red and green. I like the graphic of "Click any row below to run P&L analysis for that strike" In the old code I could click on the line and it jumps to the P&L. In the new I have to go ove to the right and click on the "EV" to jump to P&L. Also can we make the graphics a bit smaller like the old one, I will be using this on an iPad. In the EV Calculator section I want the "Your Target Pice" to be blank, forcing me to fill it in as well as my percentage success, it defaults to 70%. Can you put in the missing graphic called "Volatility Skew" box and the "Implied Volatility Context" box. Here is the html code - "<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OptionsIQ - Options Chain & P&L Analyzer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body { background-color: #0b0f17; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
-    .bg-card { background-color: #111827; }
-    .bg-card-header { background-color: #1f2937; }
-    .border-dark { border-color: #1f2937; }
-    .text-accent { color: #10b981; }
-    .bg-accent { background-color: #10b981; }
-    .bg-accent:hover { background-color: #059669; }
-    .accent-border { border-color: #10b981; }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OptionsIQ - Options Chain & P&L Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0b0f17; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
+    .bg-card { background-color: #111827; }
+    .bg-card-header { background-color: #1f2937; }
+    .border-dark { border-color: #1f2937; }
+    .text-accent { color: #10b981; }
+    .bg-accent { background-color: #10b981; }
+    .bg-accent:hover { background-color: #059669; }
+    .accent-border { border-color: #10b981; }
+  </style>
 </head>
 <body class="p-4 md:p-6 min-h-screen">
 
-  <!-- TOP HEADER -->
-  <header class="flex flex-wrap items-center justify-between pb-4 border-b border-dark mb-6 gap-4">
-    <div class="flex items-center gap-3">
-      <div class="bg-accent/20 text-accent p-2 rounded-lg">
-        <i class="fa-solid fa-chart-line text-xl"></i>
-      </div>
-      <div>
-        <h1 class="text-xl font-bold tracking-tight text-white">OPTIONSIQ</h1>
-        <p class="text-xs text-gray-400">Options Chain & P&L Analyzer</p>
-      </div>
-    </div>
-
-    <!-- TABS -->
-    <div class="flex bg-gray-900 p-1 rounded-lg border border-dark">
-      <button id="tab-chain-btn" onclick="switchTab('chain')" class="flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-gray-950 font-semibold shadow transition">
-        <i class="fa-solid fa-list-columns"></i> Chain & P&L
-      </button>
-      <button id="tab-ev-btn" onclick="switchTab('ev')" class="flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">
-        <i class="fa-solid fa-bolt"></i> EV Calculator
-      </button>
-    </div>
-
-    <div class="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1.5 rounded-full">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      Live Schwab Engine
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto">
-    
-    <!-- ==================== TAB 1: CHAIN & P&L ==================== -->
-    <section id="tab-chain" class="space-y-6">
-      
-      <!-- CONTROLS BAR -->
-      <div class="bg-card p-4 rounded-xl border border-dark flex flex-wrap items-center gap-4 justify-between">
-        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-          <div class="relative flex-1">
-            <span class="absolute left-3 top-2.5 text-xs font-semibold text-gray-500">SYMBOL</span>
-            <input type="text" id="symbol-input" placeholder="ENTER TICKER (e.g. AMZN)" class="w-full bg-gray-900 border border-dark rounded-lg pt-6 pb-2 px-3 text-white font-bold text-lg focus:outline-none focus:border-emerald-500 uppercase" onkeypress="handleKeyPress(event)">
-          </div>
-          <button onclick="fetchOptionChain()" class="bg-accent text-gray-950 font-bold px-6 py-4 rounded-lg hover:bg-emerald-400 transition flex items-center gap-2">
-            <i class="fa-solid fa-magnifying-glass"></i> Analyze
-          </button>
-        </div>
-
-        <div class="flex items-center gap-4">
-          <div>
-            <label class="block text-xs text-gray-400 mb-1 font-semibold">OPTION TYPE</label>
-            <div class="flex bg-gray-900 p-1 rounded-lg border border-dark">
-              <button id="type-call" onclick="setOptionType('Call')" class="px-4 py-1.5 rounded-md text-sm font-bold bg-accent text-gray-950">Call</button>
-              <button id="type-put" onclick="setOptionType('Put')" class="px-4 py-1.5 rounded-md text-sm font-bold text-gray-400">Put</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs text-gray-400 mb-1 font-semibold">EXPIRATION</label>
-            <select id="expiration-select" onchange="onExpirationChange()" class="bg-gray-900 border border-dark text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-emerald-500">
-              <option value="">Select Expiration</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- TICKER SUMMARY -->
-      <div class="bg-card p-4 rounded-xl border border-dark flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <span class="text-xs text-gray-400 font-semibold block">Last Price</span>
-          <span class="text-2xl font-extrabold text-white" id="display-last-price">--</span>
-        </div>
-        <div>
-          <span class="text-xs text-gray-400 font-semibold block">Company</span>
-          <span class="text-base font-medium text-gray-200" id="display-company-name">--</span>
-        </div>
-        <div>
-          <span class="text-xs text-gray-400 font-semibold block">Status</span>
-          <span class="text-sm font-medium text-gray-400" id="display-status">Awaiting Input...</span>
-        </div>
-      </div>
-
-      <!-- OPTION CHAIN TABLE -->
-      <div class="bg-card rounded-xl border border-dark overflow-hidden">
-        <div class="p-4 border-b border-dark flex justify-between items-center">
-          <h2 class="font-bold text-gray-200"><span id="chain-ticker-label">--</span> — <span id="chain-type-label">Call Options</span></h2>
-          <span class="text-xs text-gray-400" id="chain-exp-label">Expiration: Select Expiration</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-900 text-gray-400 text-xs uppercase border-b border-dark">
-              <tr>
-                <th class="p-3">Strike</th>
-                <th class="p-3">Bid</th>
-                <th class="p-3">Ask</th>
-                <th class="p-3">Mid</th>
-                <th class="p-3">Last</th>
-                <th class="p-3">IV %</th>
-                <th class="p-3">Delta</th>
-                <th class="p-3">Volume</th>
-                <th class="p-3">Open Int.</th>
-                <th class="p-3 text-right">EV Calc</th>
-              </tr>
-            </thead>
-            <tbody id="chain-tbody" class="divide-y divide-gray-800 text-gray-200 font-mono text-xs">
-              <tr>
-                <td colspan="10" class="p-8 text-center text-gray-500 font-sans">Enter a ticker symbol above and click "Analyze" to load option chain data.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 2: EV CALCULATOR ==================== -->
-    <section id="tab-ev" class="hidden space-y-6">
-      
-      <!-- PRE-FILLED BANNER -->
-      <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2">
-        <i class="fa-solid fa-circle-info"></i>
-        <span id="ev-banner-text">Pre-filled option trade data — add your success probability and target price to complete the analysis.</span>
-      </div>
-
-      <!-- MAIN CALCULATOR GRID -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- LEFT COLUMN: INPUTS & THESIS -->
-        <div class="lg:col-span-5 space-y-6">
-          
-          <div class="bg-card p-5 rounded-xl border border-dark space-y-4">
-            <h3 class="text-sm font-bold text-gray-300 border-b border-dark pb-2 flex items-center gap-2">
-              <i class="fa-solid fa-sliders text-accent"></i> TRADE BASICS
-            </h3>
-            
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-gray-400 mb-1">TICKER</label>
-                <input id="ev-ticker" type="text" readonly class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" placeholder="--">
-              </div>
-              <div>
-                <label class="block text-xs text-gray-400 mb-1">PREMIUM PAID</label>
-                <input id="ev-premium" type="number" step="0.01" class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" oninput="calculateEV()">
-              </div>
-              <div>
-                <label class="block text-xs text-gray-400 mb-1">STRIKE PRICE</label>
-                <input id="ev-strike" type="number" class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" oninput="calculateEV()">
-              </div>
-              <div>
-                <label class="block text-xs text-gray-400 mb-1">CURRENT PRICE</label>
-                <input id="ev-current" type="number" step="0.01" class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" oninput="calculateEV()">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs text-gray-400 mb-1">YOUR TARGET PRICE ($)</label>
-              <input id="ev-target" type="number" step="0.5" class="w-full bg-gray-900 border border-emerald-500 rounded p-2 text-emerald-400 font-extrabold text-lg" oninput="calculateEV()">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-gray-400 mb-1">IMPLIED VOL (IV %)</label>
-                <input id="ev-iv" type="number" value="35.2" class="w-full bg-gray-900 border border-dark rounded p-2 text-white" oninput="calculateEV()">
-              </div>
-              <div>
-                <label class="block text-xs text-gray-400 mb-1">DAYS TO EXPIRY</label>
-                <input id="ev-dte" type="number" value="34" class="w-full bg-gray-900 border border-dark rounded p-2 text-white" oninput="calculateEV()">
-              </div>
-            </div>
-          </div>
-
-          <!-- PROBABILITY INPUTS -->
-          <div class="bg-card p-5 rounded-xl border border-dark space-y-4">
-            <h3 class="text-sm font-bold text-gray-300 border-b border-dark pb-2 flex items-center gap-2">
-              <i class="fa-solid fa-chart-pie text-accent"></i> PROBABILITY INPUTS
-            </h3>
-            
-            <div>
-              <div class="flex justify-between text-xs mb-1">
-                <span class="text-gray-400">YOUR SUCCESS PROBABILITY (%)</span>
-                <span id="prob-user-display" class="font-bold text-emerald-400">70.0%</span>
-              </div>
-              <input id="prob-user-slider" type="range" min="1" max="99" value="70" class="w-full accent-emerald-500 h-2 bg-gray-800 rounded-lg cursor-pointer" oninput="updateProbSlider(this.value)">
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs mb-1">
-                <span class="text-gray-400">MARKET IMPLIED PROBABILITY (DELTA)</span>
-                <span id="prob-market-display" class="font-bold text-yellow-400">50.0%</span>
-              </div>
-              <input id="prob-market-input" type="number" step="0.1" value="50.0" class="w-full bg-gray-900 border border-dark rounded p-2 text-white text-sm" oninput="calculateEV()">
-            </div>
-          </div>
-
-          <!-- ADVERSE SELECTION CHECK -->
-          <div class="bg-card p-5 rounded-xl border border-dark space-y-3">
-            <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation"></i> ADVERSE SELECTION CHECK
-            </h3>
-            <p class="text-xs text-gray-400">Why is the market maker giving me this price? Enter your rationale:</p>
-            <textarea id="ev-notes" rows="2" class="w-full bg-gray-900 border border-dark rounded p-2 text-xs text-white focus:outline-none focus:border-amber-500" placeholder="Earnings catalyst not yet priced; FDA decision pending Q3..."></textarea>
-          </div>
-
-        </div>
-
-        <!-- RIGHT COLUMN: CALCULATED METRICS & VERDICT -->
-        <div class="lg:col-span-7 space-y-6">
-          
-          <!-- VERDICT BOX -->
-          <div id="verdict-card" class="bg-card p-6 rounded-xl border border-amber-500/50 text-center space-y-2">
-            <span class="text-xs uppercase tracking-widest text-amber-400 font-bold block" id="verdict-sub">Evaluation Result</span>
-            <h2 class="text-3xl font-black text-amber-400" id="verdict-title">MIXED SIGNAL</h2>
-            <p class="text-xs text-gray-400" id="verdict-desc">One condition met but not both. Proceed with caution — consider position sizing down.</p>
-            
-            <div class="flex justify-center gap-3 pt-2">
-              <span id="badge-ev" class="px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800">EV &lt; 0</span>
-              <span id="badge-edge" class="px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">Edge &gt; 0</span>
-            </div>
-          </div>
-
-          <!-- METRICS GRID -->
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-card p-4 rounded-xl border border-dark">
-              <span class="text-xs text-gray-400 block">Max Loss</span>
-              <span class="text-xl font-bold text-white" id="metric-max-loss">$0.00 / share</span>
-              <span class="text-xs text-gray-500 block" id="metric-max-loss-contract">$0.00 per contract</span>
-            </div>
-            <div class="bg-card p-4 rounded-xl border border-dark">
-              <span class="text-xs text-gray-400 block">Prob of Failure</span>
-              <span class="text-xl font-bold text-white" id="metric-prob-failure">30.0%</span>
-              <span class="text-xs text-gray-500 block">Success: <span id="metric-prob-success">70.0%</span></span>
-            </div>
-            <div class="bg-card p-4 rounded-xl border border-dark">
-              <span class="text-xs text-gray-400 block">Max Payout at Target</span>
-              <span class="text-xl font-bold text-white" id="metric-max-payout">$0.00</span>
-              <span class="text-xs text-gray-500 block">Net of premium paid</span>
-            </div>
-            <div class="bg-card p-4 rounded-xl border border-dark">
-              <span class="text-xs text-gray-400 block">Your Edge</span>
-              <span class="text-xl font-bold text-emerald-400" id="metric-edge">+20.0%</span>
-              <span class="text-xs text-gray-500 block">vs. market implied prob</span>
-            </div>
-          </div>
-
-          <!-- EXPECTED VALUE CARD -->
-          <div class="bg-card p-5 rounded-xl border border-dark space-y-3">
-            <div class="flex justify-between items-baseline">
-              <span class="text-xs font-bold text-gray-400">EXPECTED VALUE (EV)</span>
-              <span class="text-xs font-bold text-red-400" id="metric-ev-return">0.0% Return</span>
-            </div>
-            <div class="text-3xl font-black text-red-500" id="metric-ev-amount">$0.00</div>
-            <p class="text-xs text-gray-400">Mathematical average return if this trade was repeated 1,000 times with your probability estimate.</p>
-          </div>
-
-          <!-- FORMULA BREAKDOWN -->
-          <div class="bg-card p-4 rounded-xl border border-dark font-mono text-xs space-y-1.5 text-gray-400">
-            <h4 class="font-sans font-bold text-gray-300 text-xs mb-2">FORMULA BREAKDOWN</h4>
-            <p>Max Loss (L) = Premium = <span id="formula-loss" class="text-white">$0.00</span></p>
-            <p>Max Payout (G) = MAX(0, Target - Strike) - Premium = <span id="formula-payout" class="text-white">$0.00</span></p>
-            <p>Prob Failure = 1 - Your Prob = <span id="formula-failure" class="text-white">30.0%</span></p>
-            <p>EV = (Prob * Payout) - (Failure * Loss) = <span id="formula-ev" class="text-red-400">$0.00</span></p>
-            <p>Your Edge = Your Prob - Market Prob = <span id="formula-edge" class="text-emerald-400">+20.0%</span></p>
-          </div>
-
-          <!-- ACTION BUTTONS -->
-          <div class="flex gap-4">
-            <button onclick="saveToSheet()" class="flex-1 bg-accent text-gray-950 font-bold py-3 px-4 rounded-xl hover:bg-emerald-400 transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-file-excel"></i> Save to Sheet
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <script>
-    // Config: Pointed to your deployed Schwab Google Apps Script Web App
-    const SCHWAB_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8lPAR0V6ZSkP-oqaUo1iMmtfKV05vGGwFVKbgRTrrVE9QTP5t5xNYZeEQ-ZzFob4D/exec"; 
-
-    // Global State
-    let selectedOptionType = 'Call';
-    let currentStockPrice = 0;
-
-    function switchTab(tab) {
-      document.getElementById('tab-chain').classList.toggle('hidden', tab !== 'chain');
-      document.getElementById('tab-ev').classList.toggle('hidden', tab !== 'ev');
-      
-      const chainBtn = document.getElementById('tab-chain-btn');
-      const evBtn = document.getElementById('tab-ev-btn');
-      
-      if (tab === 'chain') {
-        chainBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-gray-950 font-semibold shadow transition";
-        evBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition";
-      } else {
-        evBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-gray-950 font-semibold shadow transition";
-        chainBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition";
-      }
-    }
-
-    function setOptionType(type) {
-      selectedOptionType = type;
-      document.getElementById('type-call').className = type === 'Call' ? "px-4 py-1.5 rounded-md text-sm font-bold bg-accent text-gray-950" : "px-4 py-1.5 rounded-md text-sm font-bold text-gray-400";
-      document.getElementById('type-put').className = type === 'Put' ? "px-4 py-1.5 rounded-md text-sm font-bold bg-accent text-gray-950" : "px-4 py-1.5 rounded-md text-sm font-bold text-gray-400";
-      document.getElementById('chain-type-label').innerText = `${type} Options`;
-      
-      const selectedExp = document.getElementById('expiration-select').value;
-      if (selectedExp) fetchOptionChainForExpiration(selectedExp);
-    }
-
-    function handleKeyPress(e) {
-      if (e.key === 'Enter') fetchOptionChain();
-    }
-
-    function populateExpirations(apiDates = null) {
-      const expSelect = document.getElementById('expiration-select');
-      expSelect.innerHTML = '<option value="">Select Expiration</option>';
-
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const today = new Date();
-
-      if (apiDates && Array.isArray(apiDates) && apiDates.length > 0) {
-        apiDates.forEach(dateStr => {
-          const expDate = new Date(dateStr + "T00:00:00");
-          const dte = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-          if (dte >= 0) {
-            const formatted = `${monthNames[expDate.getMonth()]} ${String(expDate.getDate()).padStart(2, '0')}, ${expDate.getFullYear()} (${dte} DTE)`;
-            const option = document.createElement('option');
-            option.value = dateStr;
-            option.innerText = formatted;
-            option.dataset.dte = dte;
-            expSelect.appendChild(option);
-          }
-        });
-      }
-    }
-
-    function onExpirationChange() {
-      const select = document.getElementById('expiration-select');
-      const selectedOption = select.options[select.selectedIndex];
-      if (select.value) {
-        document.getElementById('chain-exp-label').innerText = `Expiration: ${selectedOption.innerText}`;
-        document.getElementById('ev-dte').value = selectedOption.dataset.dte || 34;
-        fetchOptionChainForExpiration(select.value);
-      } else {
-        document.getElementById('chain-exp-label').innerText = "Expiration: Select Expiration";
-      }
-    }
-
-    async function fetchOptionChain() {
-      const ticker = document.getElementById('symbol-input').value.trim().toUpperCase();
-      if (!ticker) {
-        alert("Please enter a ticker symbol!");
-        return;
-      }
-
-      document.getElementById('display-status').innerText = "Fetching Schwab Data...";
-      document.getElementById('chain-ticker-label').innerText = ticker;
-
-      try {
-        // Fetch underlying quote and expirations from Google Apps Script Web App
-        const res = await fetch(`${SCHWAB_SCRIPT_URL}?action=getQuoteAndExpirations&ticker=${ticker}`);
-        if (!res.ok) throw new Error("Failed to fetch Schwab quote data");
-
-        const data = await res.json();
-        
-        if (data.error) throw new Error(data.error);
-
-        if (data && data.underlyingPrice) {
-          currentStockPrice = parseFloat(data.underlyingPrice);
-          document.getElementById('display-last-price').innerText = `$${currentStockPrice.toFixed(2)}`;
-          document.getElementById('display-company-name').innerText = data.description || `${ticker} Common Stock`;
-          document.getElementById('display-status').innerText = "Schwab Connected — Select Expiration";
-          document.getElementById('ev-target').value = (currentStockPrice * 1.08).toFixed(2);
-        }
-
-        if (data && data.expirations) {
-          populateExpirations(data.expirations);
-        }
-      } catch (err) {
-        console.error("Schwab API Error:", err);
-        document.getElementById('display-status').innerText = "Connection Error";
-      }
-
-      const tbody = document.getElementById('chain-tbody');
-      tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-emerald-400 font-sans">Select an Expiration date above to load live market option contracts.</td></tr>';
-    }
-
-    // Fetch Options Chain Data for Chosen Expiration from Schwab
-    async function fetchOptionChainForExpiration(dateStr) {
-      const ticker = document.getElementById('symbol-input').value.trim().toUpperCase();
-      if (!ticker) return;
-
-      document.getElementById('display-status').innerText = "Loading Live Schwab Option Chain...";
-      const tbody = document.getElementById('chain-tbody');
-      tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400 font-sans"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Fetching live Schwab contract quotes...</td></tr>';
-
-      try {
-        const chainRes = await fetch(`${SCHWAB_SCRIPT_URL}?action=getChain&ticker=${ticker}&expiration=${dateStr}`);
-        if (!chainRes.ok) throw new Error("Failed to fetch chain from Schwab API");
-
-        const chainData = await chainRes.json();
-
-        if (Array.isArray(chainData) && chainData.length > 0) {
-          renderRealOptionsChain(chainData);
-          document.getElementById('display-status').innerText = "Live Schwab Contracts Loaded";
-          return;
-        } else if (chainData.error) {
-          console.error("Backend Error:", chainData.error);
-        }
-      } catch (e) {
-        console.error("Schwab option chain fetch failed:", e);
-      }
-
-      // Dynamic fallback rendering centered on live price if API is unreachable
-      renderCalculatedChain(currentStockPrice);
-      document.getElementById('display-status').innerText = "Fallback Calculations Displayed";
-    }
-
-    function renderRealOptionsChain(chainData) {
-      const tbody = document.getElementById('chain-tbody');
-      tbody.innerHTML = '';
-
-      // Normalize contract type filter for standard Schwab API responses
-      const filtered = chainData.filter(opt => {
-        const type = opt.putCall || opt.type || opt.optionType || '';
-        return type.toUpperCase() === (selectedOptionType === 'Call' ? 'CALL' : 'PUT');
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-amber-400 font-sans">No option contracts found for this expiration.</td></tr>';
-        return;
-      }
-
-      // Sort by strike price ascending
-      filtered.sort((a, b) => (a.strikePrice || a.strike) - (b.strikePrice || b.strike));
-
-      filtered.forEach(opt => {
-        const strike = parseFloat(opt.strikePrice || opt.strike) || 0;
-        
-        // Match explicit Schwab JSON response fields
-        const bid = parseFloat(opt.bid || opt.bidPrice) || 0;
-        const ask = parseFloat(opt.ask || opt.askPrice) || 0;
-        const last = parseFloat(opt.last || opt.lastPrice) || ((bid + ask) / 2);
-        const mid = ((bid + ask) / 2).toFixed(2);
-        
-        const rawVol = parseFloat(opt.volatility || opt.impliedVolatility || 0);
-        const iv = rawVol > 0 ? (rawVol > 1 ? rawVol : rawVol * 100).toFixed(1) : "--";
-        const delta = opt.delta !== undefined ? parseFloat(opt.delta).toFixed(3) : "--";
-        
-        // Schwab volume & open interest handling
-        const volume = opt.totalVolume !== undefined ? opt.totalVolume : (opt.volume !== undefined ? opt.volume : 0);
-        const openInt = opt.openInterest !== undefined ? opt.openInterest : 0;
-
-        const isITM = selectedOptionType === 'Call' ? strike < currentStockPrice : strike > currentStockPrice;
-
-        const row = document.createElement('tr');
-        row.className = isITM ? "bg-emerald-950/20 hover:bg-emerald-900/30 transition" : "hover:bg-gray-800/50 transition";
-
-        row.innerHTML = `
-          <td class="p-3 font-bold text-white flex items-center gap-1.5">
-            $${strike.toFixed(2)} ${isITM ? '<span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-1 rounded">ITM</span>' : ''}
-          </td>
-          <td class="p-3">${bid.toFixed(2)}</td>
-          <td class="p-3">${ask.toFixed(2)}</td>
-          <td class="p-3 font-bold text-white">${mid}</td>
-          <td class="p-3">${last.toFixed(2)}</td>
-          <td class="p-3">${iv}%</td>
-          <td class="p-3">${delta}</td>
-          <td class="p-3">${volume.toLocaleString()}</td>
-          <td class="p-3">${openInt.toLocaleString()}</td>
-          <td class="p-3 text-right">
-            <button onclick="selectOption('${strike.toFixed(2)}', '${mid}', '${delta}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
-              ⚡ EV
-            </button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    function renderCalculatedChain(livePrice) {
-      const tbody = document.getElementById('chain-tbody');
-      tbody.innerHTML = '';
-
-      let strikeStep = 5;
-      if (livePrice < 25) strikeStep = 1;
-      else if (livePrice < 100) strikeStep = 2.5;
-      else if (livePrice > 500) strikeStep = 10;
-
-      const baseStrike = Math.round(livePrice / strikeStep) * strikeStep;
-      const strikes = [];
-      for (let i = -5; i <= 5; i++) {
-        strikes.push(baseStrike + (i * strikeStep));
-      }
-
-      strikes.forEach(strike => {
-        const isITM = selectedOptionType === 'Call' ? strike < livePrice : strike > livePrice;
-        const intrinsic = selectedOptionType === 'Call' ? Math.max(0, livePrice - strike) : Math.max(0, strike - livePrice);
-        const extrinsic = Math.max(0.50, livePrice * 0.04);
-        
-        const midVal = intrinsic + extrinsic;
-        const mid = midVal.toFixed(2);
-        const bid = (midVal * 0.97).toFixed(2);
-        const ask = (midVal * 1.03).toFixed(2);
-        
-        const priceDiff = livePrice - strike;
-        const deltaVal = selectedOptionType === 'Call' 
-          ? Math.max(0.05, Math.min(0.95, 0.50 + (priceDiff / livePrice) * 2.5))
-          : Math.max(0.05, Math.min(0.95, 0.50 - (priceDiff / livePrice) * 2.5));
-
-        const row = document.createElement('tr');
-        row.className = isITM ? "bg-emerald-950/20 hover:bg-emerald-900/30 transition" : "hover:bg-gray-800/50 transition";
-        
-        row.innerHTML = `
-          <td class="p-3 font-bold text-white flex items-center gap-1.5">
-            $${strike.toFixed(2)} ${isITM ? '<span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-1 rounded">ITM</span>' : ''}
-          </td>
-          <td class="p-3">${bid}</td>
-          <td class="p-3">${ask}</td>
-          <td class="p-3 font-bold text-white">${mid}</td>
-          <td class="p-3">${mid}</td>
-          <td class="p-3">32.5%</td>
-          <td class="p-3">${deltaVal.toFixed(3)}</td>
-          <td class="p-3">--</td>
-          <td class="p-3">--</td>
-          <td class="p-3 text-right">
-            <button onclick="selectOption('${strike.toFixed(2)}', '${mid}', '${deltaVal.toFixed(3)}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
-              ⚡ EV
-            </button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    function selectOption(strike, premium, delta) {
-      const ticker = document.getElementById('symbol-input').value.toUpperCase();
-      document.getElementById('ev-ticker').value = ticker;
-      document.getElementById('ev-strike').value = strike;
-      document.getElementById('ev-premium').value = premium;
-      document.getElementById('ev-current').value = currentStockPrice.toFixed(2);
-      document.getElementById('prob-market-input').value = (delta * 100).toFixed(1);
-      
-      const dte = document.getElementById('ev-dte').value || 34;
-      document.getElementById('ev-banner-text').innerText = `Pre-filled from ${ticker} $${strike} strike • ${dte} DTE — add your success probability and target price to complete the analysis.`;
-      
-      calculateEV();
-      switchTab('ev');
-    }
-
-    function updateProbSlider(val) {
-      document.getElementById('prob-user-display').innerText = `${val}.0%`;
-      calculateEV();
-    }
-
-    function calculateEV() {
-      const strike = parseFloat(document.getElementById('ev-strike').value) || 0;
-      const premium = parseFloat(document.getElementById('ev-premium').value) || 0;
-      const target = parseFloat(document.getElementById('ev-target').value) || 0;
-      const userProb = (parseFloat(document.getElementById('prob-user-slider').value) || 0) / 100;
-      const marketProb = (parseFloat(document.getElementById('prob-market-input').value) || 0) / 100;
-
-      const maxLoss = premium;
-      const maxPayout = Math.max(0, target - strike) - premium;
-      const failureProb = 1 - userProb;
-      const ev = (userProb * maxPayout) - (failureProb * maxLoss);
-      const edge = (userProb - marketProb) * 100;
-
-      document.getElementById('metric-max-loss').innerText = `$${maxLoss.toFixed(2)} / share`;
-      document.getElementById('metric-max-loss-contract').innerText = `$${(maxLoss * 100).toLocaleString('en-US', {minimumFractionDigits: 2})} per contract`;
-      document.getElementById('metric-prob-failure').innerText = `${(failureProb * 100).toFixed(1)}%`;
-      document.getElementById('metric-prob-success').innerText = `${(userProb * 100).toFixed(1)}%`;
-      document.getElementById('metric-max-payout').innerText = `$${maxPayout.toFixed(2)}`;
-      document.getElementById('metric-edge').innerText = `${edge >= 0 ? '+' : ''}${edge.toFixed(1)}%`;
-      document.getElementById('metric-ev-amount').innerText = `$${ev.toFixed(2)}`;
-      document.getElementById('metric-ev-return').innerText = `${premium > 0 ? ((ev / premium) * 100).toFixed(1) : 0}% Return`;
-
-      document.getElementById('formula-loss').innerText = `$${maxLoss.toFixed(2)}`;
-      document.getElementById('formula-payout').innerText = `$${maxPayout.toFixed(2)}`;
-      document.getElementById('formula-failure').innerText = `${(failureProb * 100).toFixed(1)}%`;
-      document.getElementById('formula-ev').innerText = `$${ev.toFixed(2)}`;
-      document.getElementById('formula-edge').innerText = `${edge >= 0 ? '+' : ''}${edge.toFixed(1)}%`;
-
-      const isEvPos = ev > 0;
-      const isEdgePos = edge > 0;
-      
-      const vCard = document.getElementById('verdict-card');
-      const vTitle = document.getElementById('verdict-title');
-      const vDesc = document.getElementById('verdict-desc');
-      
-      if (isEvPos && isEdgePos) {
-        vTitle.innerText = "EV BUY SIGNAL";
-        vTitle.className = "text-3xl font-black text-emerald-400";
-        vDesc.innerText = "Math supports the trade. Positive Expected Value and clear statistical edge detected.";
-        vCard.className = "bg-card p-6 rounded-xl border border-emerald-500/50 text-center space-y-2";
-      } else if (!isEvPos && !isEdgePos) {
-        vTitle.innerText = "AVOID TRADE";
-        vTitle.className = "text-3xl font-black text-red-500";
-        vDesc.innerText = "Negative Expected Value and no edge over market implied probability.";
-        vCard.className = "bg-card p-6 rounded-xl border border-red-500/50 text-center space-y-2";
-      } else {
-        vTitle.innerText = "MIXED SIGNAL";
-        vTitle.className = "text-3xl font-black text-amber-400";
-        vDesc.innerText = "One condition met but not both. Proceed with caution — consider position sizing down.";
-        vCard.className = "bg-card p-6 rounded-xl border border-amber-500/50 text-center space-y-2";
-      }
-
-      document.getElementById('badge-ev').innerText = isEvPos ? "EV > 0" : "EV < 0";
-      document.getElementById('badge-ev').className = isEvPos ? "px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800" : "px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800";
-      
-      document.getElementById('badge-edge').innerText = isEdgePos ? "Edge > 0" : "Edge < 0";
-      document.getElementById('badge-edge').className = isEdgePos ? "px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800" : "px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800";
-    }
-
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8lPAR0V6ZSkP-oqaUo1iMmtfKV05vGGwFVKbgRTrrVE9QTP5t5xNYZeEQ-ZzFob4D/exec"; 
-
-    function saveToSheet() {
-      const saveBtn = document.querySelector('button[onclick="saveToSheet()"]');
-      saveBtn.innerText = "Saving...";
-      saveBtn.disabled = true;
-
-      const tradePayload = {
-        ticker: document.getElementById('ev-ticker').value,
-        premiumPaid: parseFloat(document.getElementById('ev-premium').value) || 0,
-        strikePrice: parseFloat(document.getElementById('ev-strike').value) || 0,
-        currentPrice: parseFloat(document.getElementById('ev-current').value) || 0,
-        maxLoss: parseFloat(document.getElementById('ev-premium').value) || 0,
-        targetPrice: parseFloat(document.getElementById('ev-target').value) || 0,
-        yourSuccessProb: parseFloat(document.getElementById('prob-user-slider').value) || 0,
-        probFailure: 100 - (parseFloat(document.getElementById('prob-user-slider').value) || 0),
-        maxPayoutAtTarget: Math.max(0, parseFloat(document.getElementById('ev-target').value) - parseFloat(document.getElementById('ev-strike').value)) - parseFloat(document.getElementById('ev-premium').value),
-        marketImpliedProb: parseFloat(document.getElementById('prob-market-input').value) || 0,
-        expectedValue: parseFloat(document.getElementById('metric-ev-amount').innerText.replace('$', '')) || 0,
-        yourEdge: parseFloat(document.getElementById('metric-edge').innerText.replace('%', '').replace('+', '')) || 0,
-        verdict: document.getElementById('verdict-title').innerText,
-        adverseSelectionNote: document.getElementById('ev-notes').value,
-        returnOnPremium: parseFloat(document.getElementById('metric-ev-return').innerText.replace('% Return', '')) || 0
-      };
-
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tradePayload)
-      })
-      .then(() => {
-        alert("Trade saved successfully to both 'Option Assessment' and 'Option PIT'!");
-        saveBtn.innerText = "Save to Sheet";
-        saveBtn.disabled = false;
-      })
-      .catch(err => {
-        alert("Error saving trade: " + err);
-        saveBtn.innerText = "Save to Sheet";
-        saveBtn.disabled = false;
-      });
-    }
-  </script>
+  <!-- TOP HEADER -->
+  <header class="flex flex-wrap items-center justify-between pb-4 border-b border-dark mb-6 gap-4">
+    <div class="flex items-center gap-3">
+      <div class="bg-accent/20 text-accent p-2 rounded-lg">
+        <i class="fa-solid fa-chart-line text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white">OPTIONSIQ</h1>
+        <p class="text-xs text-gray-400">Options Chain & P&L Analyzer</p>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="flex bg-gray-900 p-1 rounded-lg border border-dark">
+      <button id="tab-chain-btn" onclick="switchTab('chain')" class="flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-gray-950 font-semibold shadow transition">
+        <i class="fa-solid fa-list-columns"></i> Chain & P&L
+      </button>
+      <button id="tab-ev-btn" onclick="switchTab('ev')" class="flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">
+        <i class="fa-solid fa-bolt"></i> EV Calculator
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1.5 rounded-full">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      Live Schwab Engine
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto">
+    
+    <!-- ==================== TAB 1: CHAIN & P&L ==================== -->
+    <section id="tab-chain" class="space-y-6">
+      
+      <!-- CONTROLS BAR -->
+      <div class="bg-card p-4 rounded-xl border border-dark flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+          <div class="relative flex-1">
+            <span class="absolute left-3 top-2.5 text-xs font-semibold text-gray-500">SYMBOL</span>
+            <input type="text" id="symbol-input" placeholder="ENTER TICKER (e.g. AMZN)" class="w-full bg-gray-900 border border-dark rounded-lg pt-6 pb-2 px-3 text-white font-bold text-lg focus:outline-none focus:border-emerald-500 uppercase" onkeypress="handleKeyPress(event)">
+          </div>
+          <button onclick="fetchOptionChain()" class="bg-accent text-gray-950 font-bold px-6 py-4 rounded-lg hover:bg-emerald-400 transition flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass"></i> Analyze
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1 font-semibold">OPTION TYPE</label>
+            <div class="flex bg-gray-900 p-1 rounded-lg border border-dark">
+              <button id="type-call" onclick="setOptionType('Call')" class="px-4 py-1.5 rounded-md text-sm font-bold bg-accent text-gray-950">Call</button>
+              <button id="type-put" onclick="setOptionType('Put')" class="px-4 py-1.5 rounded-md text-sm font-bold text-gray-400">Put</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1 font-semibold">EXPIRATION</label>
+            <select id="expiration-select" onchange="onExpirationChange()" class="bg-gray-900 border border-dark text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-emerald-500">
+              <option value="">Select Expiration</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TICKER SUMMARY -->
+      <div class="bg-card p-4 rounded-xl border border-dark flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="text-xs text-gray-400 font-semibold block">Last Price</span>
+          <span class="text-2xl font-extrabold text-white" id="display-last-price">--</span>
+        </div>
+        <div>
+          <span class="text-xs text-gray-400 font-semibold block">Company</span>
+          <span class="text-base font-medium text-gray-200" id="display-company-name">--</span>
+        </div>
+        <div>
+          <span class="text-xs text-gray-400 font-semibold block">Status</span>
+          <span class="text-sm font-medium text-gray-400" id="display-status">Awaiting Input...</span>
+        </div>
+      </div>
+
+      <!-- OPTION CHAIN TABLE -->
+      <div class="bg-card rounded-xl border border-dark overflow-hidden">
+        <div class="p-4 border-b border-dark flex justify-between items-center">
+          <h2 class="font-bold text-gray-200"><span id="chain-ticker-label">--</span> — <span id="chain-type-label">Call Options</span></h2>
+          <span class="text-xs text-gray-400" id="chain-exp-label">Expiration: Select Expiration</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-900 text-gray-400 text-xs uppercase border-b border-dark">
+              <tr>
+                <th class="p-3">Strike</th>
+                <th class="p-3">Bid</th>
+                <th class="p-3">Ask</th>
+                <th class="p-3">Mid</th>
+                <th class="p-3">Last</th>
+                <th class="p-3">IV %</th>
+                <th class="p-3">Delta</th>
+                <th class="p-3">Volume</th>
+                <th class="p-3">Open Int.</th>
+                <th class="p-3 text-right">EV Calc</th>
+              </tr>
+            </thead>
+            <tbody id="chain-tbody" class="divide-y divide-gray-800 text-gray-200 font-mono text-xs">
+              <tr>
+                <td colspan="10" class="p-8 text-center text-gray-500 font-sans">Enter a ticker symbol above and click "Analyze" to load option chain data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: EV CALCULATOR ==================== -->
+    <section id="tab-ev" class="hidden space-y-6">
+      
+      <!-- PRE-FILLED BANNER -->
+      <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="ev-banner-text">Pre-filled option trade data — add your success probability and target price to complete the analysis.</span>
+      </div>
+
+      <!-- MAIN CALCULATOR GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT COLUMN: INPUTS & THESIS -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <div class="bg-card p-5 rounded-xl border border-dark space-y-4">
+            <h3 class="text-sm font-bold text-gray-300 border-b border-dark pb-2 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-accent"></i> TRADE BASICS
+            </h3>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">TICKER</label>
+                <input id="ev-ticker" type="text" readonly class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" placeholder="--">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">PREMIUM PAID</label>
+                <input id="ev-premium" type="number" step="0.01" class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" oninput="calculateEV()">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">STRIKE PRICE</label>
+                <input id="ev-strike" type="number" class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" oninput="calculateEV()">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">CURRENT PRICE</label>
+                <input id="ev-current" type="number" step="0.01" class="w-full bg-gray-900 border border-dark rounded p-2 text-white font-bold" oninput="calculateEV()">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">YOUR TARGET PRICE ($)</label>
+              <input id="ev-target" type="number" step="0.5" class="w-full bg-gray-900 border border-emerald-500 rounded p-2 text-emerald-400 font-extrabold text-lg" oninput="calculateEV()">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">IMPLIED VOL (IV %)</label>
+                <input id="ev-iv" type="number" value="35.2" class="w-full bg-gray-900 border border-dark rounded p-2 text-white" oninput="calculateEV()">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">DAYS TO EXPIRY</label>
+                <input id="ev-dte" type="number" value="34" class="w-full bg-gray-900 border border-dark rounded p-2 text-white" oninput="calculateEV()">
+              </div>
+            </div>
+          </div>
+
+          <!-- PROBABILITY INPUTS -->
+          <div class="bg-card p-5 rounded-xl border border-dark space-y-4">
+            <h3 class="text-sm font-bold text-gray-300 border-b border-dark pb-2 flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-accent"></i> PROBABILITY INPUTS
+            </h3>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-400">YOUR SUCCESS PROBABILITY (%)</span>
+                <span id="prob-user-display" class="font-bold text-emerald-400">70.0%</span>
+              </div>
+              <input id="prob-user-slider" type="range" min="1" max="99" value="70" class="w-full accent-emerald-500 h-2 bg-gray-800 rounded-lg cursor-pointer" oninput="updateProbSlider(this.value)">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-400">MARKET IMPLIED PROBABILITY (DELTA)</span>
+                <span id="prob-market-display" class="font-bold text-yellow-400">50.0%</span>
+              </div>
+              <input id="prob-market-input" type="number" step="0.1" value="50.0" class="w-full bg-gray-900 border border-dark rounded p-2 text-white text-sm" oninput="calculateEV()">
+            </div>
+          </div>
+
+          <!-- ADVERSE SELECTION CHECK -->
+          <div class="bg-card p-5 rounded-xl border border-dark space-y-3">
+            <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation"></i> ADVERSE SELECTION CHECK
+            </h3>
+            <p class="text-xs text-gray-400">Why is the market maker giving me this price? Enter your rationale:</p>
+            <textarea id="ev-notes" rows="2" class="w-full bg-gray-900 border border-dark rounded p-2 text-xs text-white focus:outline-none focus:border-amber-500" placeholder="Earnings catalyst not yet priced; FDA decision pending Q3..."></textarea>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: CALCULATED METRICS & VERDICT -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <!-- VERDICT BOX -->
+          <div id="verdict-card" class="bg-card p-6 rounded-xl border border-amber-500/50 text-center space-y-2">
+            <span class="text-xs uppercase tracking-widest text-amber-400 font-bold block" id="verdict-sub">Evaluation Result</span>
+            <h2 class="text-3xl font-black text-amber-400" id="verdict-title">MIXED SIGNAL</h2>
+            <p class="text-xs text-gray-400" id="verdict-desc">One condition met but not both. Proceed with caution — consider position sizing down.</p>
+            
+            <div class="flex justify-center gap-3 pt-2">
+              <span id="badge-ev" class="px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800">EV &lt; 0</span>
+              <span id="badge-edge" class="px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">Edge &gt; 0</span>
+            </div>
+          </div>
+
+          <!-- METRICS GRID -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-card p-4 rounded-xl border border-dark">
+              <span class="text-xs text-gray-400 block">Max Loss</span>
+              <span class="text-xl font-bold text-white" id="metric-max-loss">$0.00 / share</span>
+              <span class="text-xs text-gray-500 block" id="metric-max-loss-contract">$0.00 per contract</span>
+            </div>
+            <div class="bg-card p-4 rounded-xl border border-dark">
+              <span class="text-xs text-gray-400 block">Prob of Failure</span>
+              <span class="text-xl font-bold text-white" id="metric-prob-failure">30.0%</span>
+              <span class="text-xs text-gray-500 block">Success: <span id="metric-prob-success">70.0%</span></span>
+            </div>
+            <div class="bg-card p-4 rounded-xl border border-dark">
+              <span class="text-xs text-gray-400 block">Max Payout at Target</span>
+              <span class="text-xl font-bold text-white" id="metric-max-payout">$0.00</span>
+              <span class="text-xs text-gray-500 block">Net of premium paid</span>
+            </div>
+            <div class="bg-card p-4 rounded-xl border border-dark">
+              <span class="text-xs text-gray-400 block">Your Edge</span>
+              <span class="text-xl font-bold text-emerald-400" id="metric-edge">+20.0%</span>
+              <span class="text-xs text-gray-500 block">vs. market implied prob</span>
+            </div>
+          </div>
+
+          <!-- EXPECTED VALUE CARD -->
+          <div class="bg-card p-5 rounded-xl border border-dark space-y-3">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-bold text-gray-400">EXPECTED VALUE (EV)</span>
+              <span class="text-xs font-bold text-red-400" id="metric-ev-return">0.0% Return</span>
+            </div>
+            <div class="text-3xl font-black text-red-500" id="metric-ev-amount">$0.00</div>
+            <p class="text-xs text-gray-400">Mathematical average return if this trade was repeated 1,000 times with your probability estimate.</p>
+          </div>
+
+          <!-- FORMULA BREAKDOWN -->
+          <div class="bg-card p-4 rounded-xl border border-dark font-mono text-xs space-y-1.5 text-gray-400">
+            <h4 class="font-sans font-bold text-gray-300 text-xs mb-2">FORMULA BREAKDOWN</h4>
+            <p>Max Loss (L) = Premium = <span id="formula-loss" class="text-white">$0.00</span></p>
+            <p>Max Payout (G) = MAX(0, Target - Strike) - Premium = <span id="formula-payout" class="text-white">$0.00</span></p>
+            <p>Prob Failure = 1 - Your Prob = <span id="formula-failure" class="text-white">30.0%</span></p>
+            <p>EV = (Prob * Payout) - (Failure * Loss) = <span id="formula-ev" class="text-red-400">$0.00</span></p>
+            <p>Your Edge = Your Prob - Market Prob = <span id="formula-edge" class="text-emerald-400">+20.0%</span></p>
+          </div>
+
+          <!-- ACTION BUTTONS -->
+          <div class="flex gap-4">
+            <button onclick="saveToSheet()" class="flex-1 bg-accent text-gray-950 font-bold py-3 px-4 rounded-xl hover:bg-emerald-400 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-file-excel"></i> Save to Sheet
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Config: Pointed to your deployed Schwab Google Apps Script Web App
+    const SCHWAB_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8lPAR0V6ZSkP-oqaUo1iMmtfKV05vGGwFVKbgRTrrVE9QTP5t5xNYZeEQ-ZzFob4D/exec"; 
+
+    // Global State
+    let selectedOptionType = 'Call';
+    let currentStockPrice = 0;
+
+    function switchTab(tab) {
+      document.getElementById('tab-chain').classList.toggle('hidden', tab !== 'chain');
+      document.getElementById('tab-ev').classList.toggle('hidden', tab !== 'ev');
+      
+      const chainBtn = document.getElementById('tab-chain-btn');
+      const evBtn = document.getElementById('tab-ev-btn');
+      
+      if (tab === 'chain') {
+        chainBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-gray-950 font-semibold shadow transition";
+        evBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition";
+      } else {
+        evBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-gray-950 font-semibold shadow transition";
+        chainBtn.className = "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition";
+      }
+    }
+
+    function setOptionType(type) {
+      selectedOptionType = type;
+      document.getElementById('type-call').className = type === 'Call' ? "px-4 py-1.5 rounded-md text-sm font-bold bg-accent text-gray-950" : "px-4 py-1.5 rounded-md text-sm font-bold text-gray-400";
+      document.getElementById('type-put').className = type === 'Put' ? "px-4 py-1.5 rounded-md text-sm font-bold bg-accent text-gray-950" : "px-4 py-1.5 rounded-md text-sm font-bold text-gray-400";
+      document.getElementById('chain-type-label').innerText = `${type} Options`;
+      
+      const selectedExp = document.getElementById('expiration-select').value;
+      if (selectedExp) fetchOptionChainForExpiration(selectedExp);
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') fetchOptionChain();
+    }
+
+    function populateExpirations(apiDates = null) {
+      const expSelect = document.getElementById('expiration-select');
+      expSelect.innerHTML = '<option value="">Select Expiration</option>';
+
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const today = new Date();
+
+      if (apiDates && Array.isArray(apiDates) && apiDates.length > 0) {
+        apiDates.forEach(dateStr => {
+          const expDate = new Date(dateStr + "T00:00:00");
+          const dte = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+          if (dte >= 0) {
+            const formatted = `${monthNames[expDate.getMonth()]} ${String(expDate.getDate()).padStart(2, '0')}, ${expDate.getFullYear()} (${dte} DTE)`;
+            const option = document.createElement('option');
+            option.value = dateStr;
+            option.innerText = formatted;
+            option.dataset.dte = dte;
+            expSelect.appendChild(option);
+          }
+        });
+      }
+    }
+
+    function onExpirationChange() {
+      const select = document.getElementById('expiration-select');
+      const selectedOption = select.options[select.selectedIndex];
+      if (select.value) {
+        document.getElementById('chain-exp-label').innerText = `Expiration: ${selectedOption.innerText}`;
+        document.getElementById('ev-dte').value = selectedOption.dataset.dte || 34;
+        fetchOptionChainForExpiration(select.value);
+      } else {
+        document.getElementById('chain-exp-label').innerText = "Expiration: Select Expiration";
+      }
+    }
+
+    async function fetchOptionChain() {
+      const ticker = document.getElementById('symbol-input').value.trim().toUpperCase();
+      if (!ticker) {
+        alert("Please enter a ticker symbol!");
+        return;
+      }
+
+      document.getElementById('display-status').innerText = "Fetching Schwab Data...";
+      document.getElementById('chain-ticker-label').innerText = ticker;
+
+      try {
+        // Fetch underlying quote and expirations from Google Apps Script Web App
+        const res = await fetch(`${SCHWAB_SCRIPT_URL}?action=getQuoteAndExpirations&ticker=${ticker}`);
+        if (!res.ok) throw new Error("Failed to fetch Schwab quote data");
+
+        const data = await res.json();
+        
+        if (data.error) throw new Error(data.error);
+
+        if (data && data.underlyingPrice) {
+          currentStockPrice = parseFloat(data.underlyingPrice);
+          document.getElementById('display-last-price').innerText = `$${currentStockPrice.toFixed(2)}`;
+          document.getElementById('display-company-name').innerText = data.description || `${ticker} Common Stock`;
+          document.getElementById('display-status').innerText = "Schwab Connected — Select Expiration";
+          document.getElementById('ev-target').value = (currentStockPrice * 1.08).toFixed(2);
+        }
+
+        if (data && data.expirations) {
+          populateExpirations(data.expirations);
+        }
+      } catch (err) {
+        console.error("Schwab API Error:", err);
+        document.getElementById('display-status').innerText = "Connection Error";
+      }
+
+      const tbody = document.getElementById('chain-tbody');
+      tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-emerald-400 font-sans">Select an Expiration date above to load live market option contracts.</td></tr>';
+    }
+
+    // Fetch Options Chain Data for Chosen Expiration from Schwab
+    async function fetchOptionChainForExpiration(dateStr) {
+      const ticker = document.getElementById('symbol-input').value.trim().toUpperCase();
+      if (!ticker) return;
+
+      document.getElementById('display-status').innerText = "Loading Live Schwab Option Chain...";
+      const tbody = document.getElementById('chain-tbody');
+      tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400 font-sans"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Fetching live Schwab contract quotes...</td></tr>';
+
+      try {
+        const chainRes = await fetch(`${SCHWAB_SCRIPT_URL}?action=getChain&ticker=${ticker}&expiration=${dateStr}`);
+        if (!chainRes.ok) throw new Error("Failed to fetch chain from Schwab API");
+
+        const chainData = await chainRes.json();
+
+        if (Array.isArray(chainData) && chainData.length > 0) {
+          renderRealOptionsChain(chainData);
+          document.getElementById('display-status').innerText = "Live Schwab Contracts Loaded";
+          return;
+        } else if (chainData.error) {
+          console.error("Backend Error:", chainData.error);
+        }
+      } catch (e) {
+        console.error("Schwab option chain fetch failed:", e);
+      }
+
+      // Dynamic fallback rendering centered on live price if API is unreachable
+      renderCalculatedChain(currentStockPrice);
+      document.getElementById('display-status').innerText = "Fallback Calculations Displayed";
+    }
+
+    function renderRealOptionsChain(chainData) {
+      const tbody = document.getElementById('chain-tbody');
+      tbody.innerHTML = '';
+
+      // Normalize contract type filter for standard Schwab API responses
+      const filtered = chainData.filter(opt => {
+        const type = opt.putCall || opt.type || opt.optionType || '';
+        return type.toUpperCase() === (selectedOptionType === 'Call' ? 'CALL' : 'PUT');
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-amber-400 font-sans">No option contracts found for this expiration.</td></tr>';
+        return;
+      }
+
+      // Sort by strike price ascending
+      filtered.sort((a, b) => (a.strikePrice || a.strike) - (b.strikePrice || b.strike));
+
+      filtered.forEach(opt => {
+        const strike = parseFloat(opt.strikePrice || opt.strike) || 0;
+        
+        // Match explicit Schwab JSON response fields
+        const bid = parseFloat(opt.bid || opt.bidPrice) || 0;
+        const ask = parseFloat(opt.ask || opt.askPrice) || 0;
+        const last = parseFloat(opt.last || opt.lastPrice) || ((bid + ask) / 2);
+        const mid = ((bid + ask) / 2).toFixed(2);
+        
+        const rawVol = parseFloat(opt.volatility || opt.impliedVolatility || 0);
+        const iv = rawVol > 0 ? (rawVol > 1 ? rawVol : rawVol * 100).toFixed(1) : "--";
+        const delta = opt.delta !== undefined ? parseFloat(opt.delta).toFixed(3) : "--";
+        
+        // Schwab volume & open interest handling
+        const volume = opt.totalVolume !== undefined ? opt.totalVolume : (opt.volume !== undefined ? opt.volume : 0);
+        const openInt = opt.openInterest !== undefined ? opt.openInterest : 0;
+
+        const isITM = selectedOptionType === 'Call' ? strike < currentStockPrice : strike > currentStockPrice;
+
+        const row = document.createElement('tr');
+        row.className = isITM ? "bg-emerald-950/20 hover:bg-emerald-900/30 transition" : "hover:bg-gray-800/50 transition";
+
+        row.innerHTML = `
+          <td class="p-3 font-bold text-white flex items-center gap-1.5">
+            $${strike.toFixed(2)} ${isITM ? '<span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-1 rounded">ITM</span>' : ''}
+          </td>
+          <td class="p-3">${bid.toFixed(2)}</td>
+          <td class="p-3">${ask.toFixed(2)}</td>
+          <td class="p-3 font-bold text-white">${mid}</td>
+          <td class="p-3">${last.toFixed(2)}</td>
+          <td class="p-3">${iv}%</td>
+          <td class="p-3">${delta}</td>
+          <td class="p-3">${volume.toLocaleString()}</td>
+          <td class="p-3">${openInt.toLocaleString()}</td>
+          <td class="p-3 text-right">
+            <button onclick="selectOption('${strike.toFixed(2)}', '${mid}', '${delta}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
+              ⚡ EV
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderCalculatedChain(livePrice) {
+      const tbody = document.getElementById('chain-tbody');
+      tbody.innerHTML = '';
+
+      let strikeStep = 5;
+      if (livePrice < 25) strikeStep = 1;
+      else if (livePrice < 100) strikeStep = 2.5;
+      else if (livePrice > 500) strikeStep = 10;
+
+      const baseStrike = Math.round(livePrice / strikeStep) * strikeStep;
+      const strikes = [];
+      for (let i = -5; i <= 5; i++) {
+        strikes.push(baseStrike + (i * strikeStep));
+      }
+
+      strikes.forEach(strike => {
+        const isITM = selectedOptionType === 'Call' ? strike < livePrice : strike > livePrice;
+        const intrinsic = selectedOptionType === 'Call' ? Math.max(0, livePrice - strike) : Math.max(0, strike - livePrice);
+        const extrinsic = Math.max(0.50, livePrice * 0.04);
+        
+        const midVal = intrinsic + extrinsic;
+        const mid = midVal.toFixed(2);
+        const bid = (midVal * 0.97).toFixed(2);
+        const ask = (midVal * 1.03).toFixed(2);
+        
+        const priceDiff = livePrice - strike;
+        const deltaVal = selectedOptionType === 'Call' 
+          ? Math.max(0.05, Math.min(0.95, 0.50 + (priceDiff / livePrice) * 2.5))
+          : Math.max(0.05, Math.min(0.95, 0.50 - (priceDiff / livePrice) * 2.5));
+
+        const row = document.createElement('tr');
+        row.className = isITM ? "bg-emerald-950/20 hover:bg-emerald-900/30 transition" : "hover:bg-gray-800/50 transition";
+        
+        row.innerHTML = `
+          <td class="p-3 font-bold text-white flex items-center gap-1.5">
+            $${strike.toFixed(2)} ${isITM ? '<span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-1 rounded">ITM</span>' : ''}
+          </td>
+          <td class="p-3">${bid}</td>
+          <td class="p-3">${ask}</td>
+          <td class="p-3 font-bold text-white">${mid}</td>
+          <td class="p-3">${mid}</td>
+          <td class="p-3">32.5%</td>
+          <td class="p-3">${deltaVal.toFixed(3)}</td>
+          <td class="p-3">--</td>
+          <td class="p-3">--</td>
+          <td class="p-3 text-right">
+            <button onclick="selectOption('${strike.toFixed(2)}', '${mid}', '${deltaVal.toFixed(3)}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
+              ⚡ EV
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function selectOption(strike, premium, delta) {
+      const ticker = document.getElementById('symbol-input').value.toUpperCase();
+      document.getElementById('ev-ticker').value = ticker;
+      document.getElementById('ev-strike').value = strike;
+      document.getElementById('ev-premium').value = premium;
+      document.getElementById('ev-current').value = currentStockPrice.toFixed(2);
+      document.getElementById('prob-market-input').value = (delta * 100).toFixed(1);
+      
+      const dte = document.getElementById('ev-dte').value || 34;
+      document.getElementById('ev-banner-text').innerText = `Pre-filled from ${ticker} $${strike} strike • ${dte} DTE — add your success probability and target price to complete the analysis.`;
+      
+      calculateEV();
+      switchTab('ev');
+    }
+
+    function updateProbSlider(val) {
+      document.getElementById('prob-user-display').innerText = `${val}.0%`;
+      calculateEV();
+    }
+
+    function calculateEV() {
+      const strike = parseFloat(document.getElementById('ev-strike').value) || 0;
+      const premium = parseFloat(document.getElementById('ev-premium').value) || 0;
+      const target = parseFloat(document.getElementById('ev-target').value) || 0;
+      const userProb = (parseFloat(document.getElementById('prob-user-slider').value) || 0) / 100;
+      const marketProb = (parseFloat(document.getElementById('prob-market-input').value) || 0) / 100;
+
+      const maxLoss = premium;
+      const maxPayout = Math.max(0, target - strike) - premium;
+      const failureProb = 1 - userProb;
+      const ev = (userProb * maxPayout) - (failureProb * maxLoss);
+      const edge = (userProb - marketProb) * 100;
+
+      document.getElementById('metric-max-loss').innerText = `$${maxLoss.toFixed(2)} / share`;
+      document.getElementById('metric-max-loss-contract').innerText = `$${(maxLoss * 100).toLocaleString('en-US', {minimumFractionDigits: 2})} per contract`;
+      document.getElementById('metric-prob-failure').innerText = `${(failureProb * 100).toFixed(1)}%`;
+      document.getElementById('metric-prob-success').innerText = `${(userProb * 100).toFixed(1)}%`;
+      document.getElementById('metric-max-payout').innerText = `$${maxPayout.toFixed(2)}`;
+      document.getElementById('metric-edge').innerText = `${edge >= 0 ? '+' : ''}${edge.toFixed(1)}%`;
+      document.getElementById('metric-ev-amount').innerText = `$${ev.toFixed(2)}`;
+      document.getElementById('metric-ev-return').innerText = `${premium > 0 ? ((ev / premium) * 100).toFixed(1) : 0}% Return`;
+
+      document.getElementById('formula-loss').innerText = `$${maxLoss.toFixed(2)}`;
+      document.getElementById('formula-payout').innerText = `$${maxPayout.toFixed(2)}`;
+      document.getElementById('formula-failure').innerText = `${(failureProb * 100).toFixed(1)}%`;
+      document.getElementById('formula-ev').innerText = `$${ev.toFixed(2)}`;
+      document.getElementById('formula-edge').innerText = `${edge >= 0 ? '+' : ''}${edge.toFixed(1)}%`;
+
+      const isEvPos = ev > 0;
+      const isEdgePos = edge > 0;
+      
+      const vCard = document.getElementById('verdict-card');
+      const vTitle = document.getElementById('verdict-title');
+      const vDesc = document.getElementById('verdict-desc');
+      
+      if (isEvPos && isEdgePos) {
+        vTitle.innerText = "EV BUY SIGNAL";
+        vTitle.className = "text-3xl font-black text-emerald-400";
+        vDesc.innerText = "Math supports the trade. Positive Expected Value and clear statistical edge detected.";
+        vCard.className = "bg-card p-6 rounded-xl border border-emerald-500/50 text-center space-y-2";
+      } else if (!isEvPos && !isEdgePos) {
+        vTitle.innerText = "AVOID TRADE";
+        vTitle.className = "text-3xl font-black text-red-500";
+        vDesc.innerText = "Negative Expected Value and no edge over market implied probability.";
+        vCard.className = "bg-card p-6 rounded-xl border border-red-500/50 text-center space-y-2";
+      } else {
+        vTitle.innerText = "MIXED SIGNAL";
+        vTitle.className = "text-3xl font-black text-amber-400";
+        vDesc.innerText = "One condition met but not both. Proceed with caution — consider position sizing down.";
+        vCard.className = "bg-card p-6 rounded-xl border border-amber-500/50 text-center space-y-2";
+      }
+
+      document.getElementById('badge-ev').innerText = isEvPos ? "EV > 0" : "EV < 0";
+      document.getElementById('badge-ev').className = isEvPos ? "px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800" : "px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800";
+      
+      document.getElementById('badge-edge').innerText = isEdgePos ? "Edge > 0" : "Edge < 0";
+      document.getElementById('badge-edge').className = isEdgePos ? "px-3 py-1 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800" : "px-3 py-1 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-800";
+    }
+
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8lPAR0V6ZSkP-oqaUo1iMmtfKV05vGGwFVKbgRTrrVE9QTP5t5xNYZeEQ-ZzFob4D/exec"; 
+
+    function saveToSheet() {
+      const saveBtn = document.querySelector('button[onclick="saveToSheet()"]');
+      saveBtn.innerText = "Saving...";
+      saveBtn.disabled = true;
+
+      const tradePayload = {
+        ticker: document.getElementById('ev-ticker').value,
+        premiumPaid: parseFloat(document.getElementById('ev-premium').value) || 0,
+        strikePrice: parseFloat(document.getElementById('ev-strike').value) || 0,
+        currentPrice: parseFloat(document.getElementById('ev-current').value) || 0,
+        maxLoss: parseFloat(document.getElementById('ev-premium').value) || 0,
+        targetPrice: parseFloat(document.getElementById('ev-target').value) || 0,
+        yourSuccessProb: parseFloat(document.getElementById('prob-user-slider').value) || 0,
+        probFailure: 100 - (parseFloat(document.getElementById('prob-user-slider').value) || 0),
+        maxPayoutAtTarget: Math.max(0, parseFloat(document.getElementById('ev-target').value) - parseFloat(document.getElementById('ev-strike').value)) - parseFloat(document.getElementById('ev-premium').value),
+        marketImpliedProb: parseFloat(document.getElementById('prob-market-input').value) || 0,
+        expectedValue: parseFloat(document.getElementById('metric-ev-amount').innerText.replace('$', '')) || 0,
+        yourEdge: parseFloat(document.getElementById('metric-edge').innerText.replace('%', '').replace('+', '')) || 0,
+        verdict: document.getElementById('verdict-title').innerText,
+        adverseSelectionNote: document.getElementById('ev-notes').value,
+        returnOnPremium: parseFloat(document.getElementById('metric-ev-return').innerText.replace('% Return', '')) || 0
+      };
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tradePayload)
+      })
+      .then(() => {
+        alert("Trade saved successfully to both 'Option Assessment' and 'Option PIT'!");
+        saveBtn.innerText = "Save to Sheet";
+        saveBtn.disabled = false;
+      })
+      .catch(err => {
+        alert("Error saving trade: " + err);
+        saveBtn.innerText = "Save to Sheet";
+        saveBtn.disabled = false;
+      });
+    }
+  </script>
 </body>
-</html>
+</html>"
