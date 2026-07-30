@@ -43,7 +43,7 @@
 
     <div class="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1.5 rounded-full">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      Live Data Engine
+      Live Schwab Engine
     </div>
   </header>
 
@@ -293,8 +293,8 @@
   </main>
 
   <script>
-    // Financial Modeling Prep API Key
-    const FMP_API_KEY = "hBUVPQKalIox1Y7mTda7QKXO8rO3Aj8s";
+    // Config: Point this to your backend proxy server handling Schwab Developer API calls
+    const SCHWAB_API_BASE = "/api/schwab"; 
 
     // Global State
     let selectedOptionType = 'Call';
@@ -330,15 +330,7 @@
       if (e.key === 'Enter') fetchOptionChain();
     }
 
-    function getThirdFriday(year, month) {
-      let date = new Date(year, month, 1);
-      let day = date.getDay();
-      let diff = (5 - day + 7) % 7;
-      let firstFriday = 1 + diff;
-      return new Date(year, month, firstFriday + 14);
-    }
-
-    function populateAuthenticExpirations(apiDates = null) {
+    function populateExpirations(apiDates = null) {
       const expSelect = document.getElementById('expiration-select');
       expSelect.innerHTML = '<option value="">Select Expiration</option>';
 
@@ -358,53 +350,7 @@
             expSelect.appendChild(option);
           }
         });
-        return;
       }
-
-      // Fallback
-      const dates = [];
-      let wDate = new Date(today);
-      let dayOfWeek = wDate.getDay();
-      let distanceToFriday = (5 - dayOfWeek + 7) % 7 || 7;
-      wDate.setDate(wDate.getDate() + distanceToFriday);
-
-      for (let i = 0; i < 6; i++) {
-        dates.push(new Date(wDate));
-        wDate.setDate(wDate.getDate() + 7);
-      }
-
-      let startYear = today.getFullYear();
-      let startMonth = today.getMonth();
-
-      for (let m = 0; m < 24; m++) {
-        let curMonth = (startMonth + m) % 12;
-        let curYear = startYear + Math.floor((startMonth + m) / 12);
-        let thirdFri = getThirdFriday(curYear, curMonth);
-
-        if (thirdFri > today) {
-          if (!dates.some(d => d.toISOString().slice(0, 10) === thirdFri.toISOString().slice(0, 10))) {
-            dates.push(thirdFri);
-          }
-        }
-      }
-
-      dates.sort((a, b) => a - b);
-
-      dates.forEach(d => {
-        const year = d.getFullYear();
-        const monthStr = String(d.getMonth() + 1).padStart(2, '0');
-        const dayStr = String(d.getDate()).padStart(2, '0');
-        const dateString = `${year}-${monthStr}-${dayStr}`;
-
-        const dte = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
-        const formattedText = `${monthNames[d.getMonth()]} ${dayStr}, ${year} (${dte} DTE)`;
-
-        const option = document.createElement('option');
-        option.value = dateString;
-        option.innerText = formattedText;
-        option.dataset.dte = dte;
-        expSelect.appendChild(option);
-      });
     }
 
     function onExpirationChange() {
@@ -426,110 +372,73 @@
         return;
       }
 
-      document.getElementById('display-status').innerText = "Fetching Live Quote...";
+      document.getElementById('display-status').innerText = "Fetching Schwab Data...";
       document.getElementById('chain-ticker-label').innerText = ticker;
 
-      // 1. Fetch Live Stock Quote
-      const targetUrl = `https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${FMP_API_KEY}`;
-      const corsProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-
       try {
-        let data = null;
-        try {
-          const res = await fetch(targetUrl);
-          if (res.ok) data = await res.json();
-        } catch (e) { console.warn("Direct quote blocked, trying proxy..."); }
+        // Fetch underlying quote and expirations directly from your Schwab service
+        const res = await fetch(`${SCHWAB_API_BASE}/quote-and-expirations?symbol=${ticker}`);
+        if (!res.ok) throw new Error("Failed to fetch Schwab quote data");
 
-        if (!data || !Array.isArray(data) || data.length === 0) {
-          const proxyRes = await fetch(corsProxyUrl);
-          if (proxyRes.ok) data = await proxyRes.json();
+        const data = await res.json();
+        
+        if (data && data.underlyingPrice) {
+          currentStockPrice = parseFloat(data.underlyingPrice);
+          document.getElementById('display-last-price').innerText = `$${currentStockPrice.toFixed(2)}`;
+          document.getElementById('display-company-name').innerText = data.description || `${ticker} Common Stock`;
+          document.getElementById('display-status').innerText = "Schwab Connected — Select Expiration";
+          document.getElementById('ev-target').value = (currentStockPrice * 1.08).toFixed(2);
         }
 
-        if (data && Array.isArray(data) && data.length > 0 && data[0].price) {
-          const livePrice = data[0].price;
-          const compName = data[0].name || `${ticker} Common Stock`;
-          currentStockPrice = livePrice;
-
-          document.getElementById('display-last-price').innerText = `$${livePrice.toFixed(2)}`;
-          document.getElementById('display-company-name').innerText = compName;
-          document.getElementById('display-status').innerText = "Quote Connected — Select Expiration";
-          document.getElementById('ev-target').value = (livePrice * 1.08).toFixed(2);
+        if (data && data.expirations) {
+          populateExpirations(data.expirations);
         }
       } catch (err) {
-        console.error("API Quote Error:", err);
-      }
-
-      // 2. Fetch Live Expiration Dates
-      const expUrl = `https://financialmodelingprep.com/api/v3/options-expiration/${ticker}?apikey=${FMP_API_KEY}`;
-      const expProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(expUrl)}`;
-
-      try {
-        let expData = null;
-        try {
-          const eRes = await fetch(expUrl);
-          if (eRes.ok) expData = await eRes.json();
-        } catch (e) {}
-
-        if (!expData || !Array.isArray(expData)) {
-          const pRes = await fetch(expProxyUrl);
-          if (pRes.ok) expData = await pRes.json();
-        }
-
-        populateAuthenticExpirations(expData);
-      } catch (e) {
-        populateAuthenticExpirations();
+        console.error("Schwab API Error:", err);
+        document.getElementById('display-status').innerText = "Connection Error";
       }
 
       const tbody = document.getElementById('chain-tbody');
       tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-emerald-400 font-sans">Select an Expiration date above to load live market option contracts.</td></tr>';
     }
 
-    // Fetch Live Options Chain Data for Chosen Expiration
+    // Fetch Options Chain Data for Chosen Expiration from Schwab
     async function fetchOptionChainForExpiration(dateStr) {
       const ticker = document.getElementById('symbol-input').value.trim().toUpperCase();
       if (!ticker) return;
 
-      document.getElementById('display-status').innerText = "Loading Live Option Chain...";
+      document.getElementById('display-status').innerText = "Loading Live Schwab Option Chain...";
       const tbody = document.getElementById('chain-tbody');
-      tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400 font-sans"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Fetching live contract quotes...</td></tr>';
-
-      const chainUrl = `https://financialmodelingprep.com/api/v3/options-chain/${ticker}?expiration=${dateStr}&apikey=${FMP_API_KEY}`;
-      const chainProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(chainUrl)}`;
+      tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400 font-sans"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Fetching live Schwab contract quotes...</td></tr>';
 
       try {
-        let chainData = null;
-        try {
-          const cRes = await fetch(chainUrl);
-          if (cRes.ok) chainData = await cRes.json();
-        } catch (e) {}
+        const chainRes = await fetch(`${SCHWAB_API_BASE}/chain?symbol=${ticker}&expiration=${dateStr}`);
+        if (!chainRes.ok) throw new Error("Failed to fetch chain from Schwab API");
 
-        if (!chainData || !Array.isArray(chainData) || chainData.length === 0) {
-          const pRes = await fetch(chainProxyUrl);
-          if (pRes.ok) chainData = await pRes.json();
-        }
+        const chainData = await chainRes.json();
 
         if (chainData && Array.isArray(chainData) && chainData.length > 0) {
           renderRealOptionsChain(chainData);
-          document.getElementById('display-status').innerText = "Live Contracts Loaded";
+          document.getElementById('display-status').innerText = "Live Schwab Contracts Loaded";
           return;
         }
       } catch (e) {
-        console.warn("FMP live options chain failed, rendering calculated chain...", e);
+        console.error("Schwab option chain fetch failed:", e);
       }
 
-      // Fallback rendering centered on live price if API tier blocks options chain
+      // Dynamic fallback rendering centered on live price if API is unreachable
       renderCalculatedChain(currentStockPrice);
-      document.getElementById('display-status').innerText = "Active";
+      document.getElementById('display-status').innerText = "Fallback Calculations Displayed";
     }
 
     function renderRealOptionsChain(chainData) {
       const tbody = document.getElementById('chain-tbody');
       tbody.innerHTML = '';
 
-      // Filter Calls vs Puts
+      // Normalize contract type filter for standard Schwab API responses
       const filtered = chainData.filter(opt => {
-        const type = opt.type || opt.optionType || '';
-        return type.toLowerCase() === selectedOptionType.toLowerCase();
+        const type = opt.putCall || opt.type || opt.optionType || '';
+        return type.toUpperCase() === (selectedOptionType === 'Call' ? 'CALL' : 'PUT');
       });
 
       if (filtered.length === 0) {
@@ -537,19 +446,25 @@
         return;
       }
 
-      // Sort by strike price
-      filtered.sort((a, b) => a.strike - b.strike);
+      // Sort by strike price ascending
+      filtered.sort((a, b) => (a.strikePrice || a.strike) - (b.strikePrice || b.strike));
 
       filtered.forEach(opt => {
-        const strike = parseFloat(opt.strike) || 0;
-        const bid = parseFloat(opt.bid) || 0;
-        const ask = parseFloat(opt.ask) || 0;
-        const last = parseFloat(opt.last) || parseFloat(opt.lastPrice) || ((bid + ask) / 2);
+        const strike = parseFloat(opt.strikePrice || opt.strike) || 0;
+        
+        // Match explicit Schwab JSON response fields
+        const bid = parseFloat(opt.bid || opt.bidPrice) || 0;
+        const ask = parseFloat(opt.ask || opt.askPrice) || 0;
+        const last = parseFloat(opt.last || opt.lastPrice) || ((bid + ask) / 2);
         const mid = ((bid + ask) / 2).toFixed(2);
-        const iv = opt.impliedVolatility ? (parseFloat(opt.impliedVolatility) * 100).toFixed(1) : "35.0";
-        const delta = opt.delta ? parseFloat(opt.delta).toFixed(3) : "0.500";
-        const volume = opt.volume || 0;
-        const openInt = opt.openInterest || 0;
+        
+        const rawVol = parseFloat(opt.volatility || opt.impliedVolatility || 0);
+        const iv = rawVol > 0 ? (rawVol > 1 ? rawVol : rawVol * 100).toFixed(1) : "--";
+        const delta = opt.delta !== undefined ? parseFloat(opt.delta).toFixed(3) : "--";
+        
+        // Schwab volume & open interest handling
+        const volume = opt.totalVolume !== undefined ? opt.totalVolume : (opt.volume !== undefined ? opt.volume : 0);
+        const openInt = opt.openInterest !== undefined ? opt.openInterest : 0;
 
         const isITM = selectedOptionType === 'Call' ? strike < currentStockPrice : strike > currentStockPrice;
 
@@ -566,8 +481,8 @@
           <td class="p-3">${last.toFixed(2)}</td>
           <td class="p-3">${iv}%</td>
           <td class="p-3">${delta}</td>
-          <td class="p-3">${volume}</td>
-          <td class="p-3">${openInt}</td>
+          <td class="p-3">${volume.toLocaleString()}</td>
+          <td class="p-3">${openInt.toLocaleString()}</td>
           <td class="p-3 text-right">
             <button onclick="selectOption('${strike.toFixed(2)}', '${mid}', '${delta}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
               ⚡ EV
@@ -595,15 +510,19 @@
 
       strikes.forEach(strike => {
         const isITM = selectedOptionType === 'Call' ? strike < livePrice : strike > livePrice;
+        const intrinsic = selectedOptionType === 'Call' ? Math.max(0, livePrice - strike) : Math.max(0, strike - livePrice);
+        const extrinsic = Math.max(0.50, livePrice * 0.04);
+        
+        const midVal = intrinsic + extrinsic;
+        const mid = midVal.toFixed(2);
+        const bid = (midVal * 0.97).toFixed(2);
+        const ask = (midVal * 1.03).toFixed(2);
+        
         const priceDiff = livePrice - strike;
         const deltaVal = selectedOptionType === 'Call' 
           ? Math.max(0.05, Math.min(0.95, 0.50 + (priceDiff / livePrice) * 2.5))
           : Math.max(0.05, Math.min(0.95, 0.50 - (priceDiff / livePrice) * 2.5));
-        
-        const delta = deltaVal.toFixed(3);
-        const midVal = Math.max(0.25, Math.abs(priceDiff) * 0.85 + (livePrice * 0.015));
-        const mid = midVal.toFixed(2);
-        
+
         const row = document.createElement('tr');
         row.className = isITM ? "bg-emerald-950/20 hover:bg-emerald-900/30 transition" : "hover:bg-gray-800/50 transition";
         
@@ -611,16 +530,16 @@
           <td class="p-3 font-bold text-white flex items-center gap-1.5">
             $${strike.toFixed(2)} ${isITM ? '<span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-1 rounded">ITM</span>' : ''}
           </td>
-          <td class="p-3">${(midVal * 0.96).toFixed(2)}</td>
-          <td class="p-3">${(midVal * 1.04).toFixed(2)}</td>
+          <td class="p-3">${bid}</td>
+          <td class="p-3">${ask}</td>
           <td class="p-3 font-bold text-white">${mid}</td>
-          <td class="p-3">${(midVal * 0.98).toFixed(2)}</td>
+          <td class="p-3">${mid}</td>
           <td class="p-3">32.5%</td>
-          <td class="p-3">${delta}</td>
-          <td class="p-3">150</td>
-          <td class="p-3">520</td>
+          <td class="p-3">${deltaVal.toFixed(3)}</td>
+          <td class="p-3">--</td>
+          <td class="p-3">--</td>
           <td class="p-3 text-right">
-            <button onclick="selectOption('${strike.toFixed(2)}', '${mid}', '${delta}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
+            <button onclick="selectOption('${strike.toFixed(2)}', '${mid}', '${deltaVal.toFixed(3)}')" class="bg-accent/20 hover:bg-accent hover:text-gray-950 text-accent font-bold px-2.5 py-1 rounded text-xs transition">
               ⚡ EV
             </button>
           </td>
